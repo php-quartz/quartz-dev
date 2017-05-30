@@ -1,0 +1,23 @@
+version: '3'
+services:
+  app:
+    image: 'formapro/nginx-php-fpm:latest-all-exts'
+    working_dir: '/app'
+    restart: 'no'
+    depends_on:
+      - 'mongo'
+    volumes:
+      - './:/app:cached'
+      - './docker/xdebug.ini:/etc/php/7.0/mods-available/xdebug.ini'
+    environment:
+      PHP_IDE_CONFIG: 'serverName=quartz.dev'
+      XDEBUG_CONFIG: 'idekey=PHPSTORM'
+      MONGODB_HOST: 'mongo'
+      MONGODB_PORT: '27017'
+      MONGODB_DB: 'quatrz'
+
+  mongo:
+    image: 'mongo:3'
+    restart: 'on-failure'
+    ports:
+      - '27017:27017'
