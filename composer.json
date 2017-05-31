@@ -7,7 +7,7 @@
     "require": {
         "php": ">=5.6",
         "ramsey/uuid": "^2|^3.5",
-        "enqueue/enqueue": "^0.3",
+        "enqueue/enqueue": "^0.3|^0.4",
         "makasim/yadm": "*@dev",
         "g4/cron": "^0.1"
     },
