@@ -30,13 +30,12 @@ class MyJob implements Job
 
 $job = JobBuilder::newJob()
     ->ofType(MyJob::class)
-    ->storeDurably()
     ->build();
 
 $trigger = TriggerBuilder::newTrigger()
     ->forJobDetail($job)
-    ->endAt(new \DateTime('+1 hour'))
-    ->withSchedule(CronScheduleBuilder::cronSchedule('*/3 * * * * *'))
+    ->endAt(new \DateTime('+1 minute'))
+    ->withSchedule(CronScheduleBuilder::cronSchedule('*/5 * * * * *'))
     ->build();
 
 $scheduler = new Scheduler(new YadmStore(new YadmStoreResource($config)), new StdJobRunShellFactory(), new SimpleJobFactory());
