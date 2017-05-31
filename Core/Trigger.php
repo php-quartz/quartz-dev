@@ -264,8 +264,10 @@ interface Trigger
      * Returns the next time at which the <code>Trigger</code> will fire,
      * after the given time. If the trigger will not fire after the given time,
      * <code>null</code> will be returned.
+     *
+     * @param \DateTime $afterTime
      */
-    public function getFireTimeAfter(\DateTime $afterTime);
+    public function getFireTimeAfter(\DateTime $afterTime = null);
 
     /**
      * Returns the last time at which the <code>Trigger</code> will fire, if
@@ -326,9 +328,11 @@ interface Trigger
      * triggering (if any).
      * </p>
      *
+     * @param Calendar $calendar
+     *
      * @see #executionComplete(JobExecutionContext, JobExecutionException)
      */
-    public function triggered(Calendar $calendar);
+    public function triggered(Calendar $calendar = null);
 
     /**
      * <p>
@@ -373,7 +377,7 @@ interface Trigger
      *
      * @param Calendar $cal
      */
-    public function updateWithNewCalendar(Calendar $cal = null);
+    public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold);
 
     /**
      * <p>

@@ -374,6 +374,13 @@ class YadmStore implements JobStore
      */
     public function clearAllSchedulingData()
     {
+        $this->executeInLock(self::LOCK_TRIGGER_ACCESS, function () {
+            $this->doClearAllSchedulingData();
+        });
+    }
+
+    public function doClearAllSchedulingData()
+    {
         $this->res->getTriggerStorage()->getCollection()->drop();
         $this->res->getJobStorage()->getCollection()->drop();
         $this->res->getCalendarStorage()->getCollection()->drop();

@@ -19,6 +19,8 @@ trait TriggerClassFactoryTrait
         switch ($values['instance']) {
             case 'simple':
                 return SimpleTrigger::class;
+            case 'cron':
+                return CronTrigger::class;
             default:
                 throw new SchedulerException(sprintf('Unknown trigger instance: "%s"', $values['instance']));
         }

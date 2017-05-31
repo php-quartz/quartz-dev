@@ -85,7 +85,6 @@ class TriggerBuilder
 
     private function __construct()
     {
-        $this->startTime = new \DateTime();
         $this->priority = Trigger::DEFAULT_PRIORITY;
         $this->jobDataMap = [];
     }
@@ -110,6 +109,10 @@ class TriggerBuilder
     {
         if(null == $this->scheduleBuilder) {
             $this->scheduleBuilder = SimpleScheduleBuilder::simpleSchedule();
+        }
+
+        if (null == $this->startTime) {
+            $this->startTime = new \DateTime();
         }
 
         $trigger = $this->scheduleBuilder->build();

@@ -331,7 +331,7 @@ class SimpleTrigger extends AbstractTrigger
     /**
      * {@inheritdoc}
      */
-    public function updateWithNewCalendar(Calendar $cal = null)
+    public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold)
     {
         // TODO: Implement updateWithNewCalendar() method.
     }
