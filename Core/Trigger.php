@@ -266,6 +266,8 @@ interface Trigger
      * <code>null</code> will be returned.
      *
      * @param \DateTime $afterTime
+     *
+     * @return \DateTime|null
      */
     public function getFireTimeAfter(\DateTime $afterTime = null);
 
@@ -376,6 +378,7 @@ interface Trigger
      * </p>
      *
      * @param Calendar $cal
+     * @param int      $misfireThreshold
      */
     public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold);
 

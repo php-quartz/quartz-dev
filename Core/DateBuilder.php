@@ -41,7 +41,13 @@ class DateBuilder
 
     public static function MAX_YEAR()
     {
-        return ((int) date('Y')) + 100;
+        static $maxYear;
+
+        if (null == $maxYear) {
+            $maxYear = ((int) date('Y')) + 100;
+        }
+
+        return $maxYear;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

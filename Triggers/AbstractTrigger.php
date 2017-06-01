@@ -3,7 +3,9 @@ namespace Quartz\Triggers;
 
 use Makasim\Values\CastTrait;
 use Makasim\Values\ValuesTrait;
+use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
+use Quartz\Core\DateBuilder;
 use Quartz\Core\JobExecutionContext;
 use Quartz\Core\Key;
 use Quartz\Core\SchedulerException;
@@ -237,6 +239,23 @@ abstract class AbstractTrigger implements Trigger
         $this->setValue('state', $state);
     }
 
+
+    /**
+     * @return int
+     */
+    public function getTimesTriggered()
+    {
+        return $this->getValue('timesTriggered', 0);
+    }
+
+    /**
+     * @param int $timesTriggered
+     */
+    public function setTimesTriggered($timesTriggered)
+    {
+        $this->setValue('timesTriggered', $timesTriggered);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -342,6 +361,104 @@ abstract class AbstractTrigger implements Trigger
         }
 
         return CompletedExecutionInstruction::NOOP;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function mayFireAgain()
+    {
+        return (bool) $this->getNextFireTime();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function computeFirstFireTime(Calendar $calendar = null)
+    {
+        $nextFireTime = clone $this->getStartTime();
+        $nextFireTime->sub(new \DateInterval('PT1S'));
+        $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+
+        $yearToGiveUpSchedulingAt = DateBuilder::MAX_YEAR();
+
+        while ($nextFireTime && $calendar && false == $calendar->isTimeIncluded(((int) $nextFireTime->format('U')))) {
+            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+
+            if ($nextFireTime == null) {
+                break;
+            }
+
+            //avoid infinite loop
+            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
+                $nextFireTime = null;
+            }
+        }
+
+        $this->setNextFireTime($nextFireTime);
+
+        return $nextFireTime;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function triggered(Calendar $calendar = null)
+    {
+        $this->setTimesTriggered($this->getTimesTriggered() + 1);
+        $this->setPreviousFireTime($nextFireTime = $this->getNextFireTime());
+        $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+
+        $yearToGiveUpSchedulingAt = DateBuilder::MAX_YEAR();
+
+        while ($nextFireTime && $calendar && false == $calendar->isTimeIncluded(((int) $nextFireTime->format('U')))) {
+            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+
+            if ($nextFireTime == null) {
+                break;
+            }
+
+            //avoid infinite loop
+            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
+                $nextFireTime = null;
+            }
+        }
+
+        $this->setNextFireTime($nextFireTime);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold)
+    {
+        $nextFireTime = $this->getFireTimeAfter($this->getPreviousFireTime());
+
+        $now = new \DateTime();
+        $yearToGiveUpSchedulingAt = DateBuilder::MAX_YEAR();
+
+        while ($nextFireTime && $cal && false == $cal->isTimeIncluded(((int) $nextFireTime->format('U')))) {
+            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+
+            if (null == $nextFireTime) {
+                break;
+            }
+
+            //avoid infinite loop
+            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
+                $nextFireTime = null;
+            }
+
+            if ($nextFireTime && $nextFireTime < $now) {
+                $diff = ((int) $now->format('U')) - ((int) $nextFireTime->format('U'));
+
+                if ($diff >= $misfireThreshold) {
+                    $nextFireTime = $this->getFireTimeAfter($nextFireTime);
+                }
+            }
+        }
+
+        $this->setNextFireTime($nextFireTime);
     }
 
     function __clone()

@@ -440,7 +440,7 @@ class YadmStore implements JobStore
         if ($existingCal && $updateTriggers) {
             /** @var Trigger $trigger */
             foreach ($this->res->getTriggerStorage()->find(['calendarName' => $name]) as $trigger) {
-                $trigger->updateWithNewCalendar($existingCal);
+                $trigger->updateWithNewCalendar($existingCal, $this->misfireThreshold);
                 $this->doStoreTrigger($trigger, true, Trigger::STATE_WAITING);
             }
         }
@@ -536,13 +536,7 @@ class YadmStore implements JobStore
      */
     protected function doPauseJob(Key $jobKey)
     {
-        $triggers = $this->res->getTriggerStorage()->find([
-            'jobName' => $jobKey->getName(),
-            'jobGroup' => $jobKey->getGroup(),
-        ]);
-
-        /** @var Trigger $trigger */
-        foreach ($triggers as $trigger) {
+        foreach ($this->getTriggersForJob($jobKey) as $trigger) {
             $this->doPauseTrigger($trigger->getKey());
         }
     }
@@ -666,13 +660,7 @@ class YadmStore implements JobStore
      */
     protected function doResumeJob(Key $jobKey)
     {
-        $triggers = $this->res->getTriggerStorage()->find([
-            'jobName' => $jobKey->getName(),
-            'jobGroup' => $jobKey->getGroup(),
-        ]);
-
-        /** @var Trigger $trigger */
-        foreach ($triggers as $trigger) {
+        foreach ($this->getTriggersForJob($jobKey) as $trigger) {
             $this->doResumeTrigger($trigger->getKey());
         }
     }
@@ -736,6 +724,97 @@ class YadmStore implements JobStore
         }
 
         $this->deletePausedTriggerGroup(self::ALL_GROUPS_PAUSED);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTriggersForJob(Key $jobKey)
+    {
+        // no locks necessary for read...
+        return $this->res->getTriggerStorage()->find([
+            'jobName' => $jobKey->getName(),
+            'jobGroup' => $jobKey->getGroup(),
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJobGroupNames()
+    {
+        // no locks necessary for read...
+        return $this->res->getJobStorage()->getCollection()->distinct('group');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTriggerGroupNames()
+    {
+        // no locks necessary for read...
+        return $this->res->getTriggerStorage()->getCollection()->distinct('group');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTriggerState(Key $triggerKey)
+    {
+        if (null == $trigger = $this->retrieveTrigger($triggerKey)) {
+            throw new JobPersistenceException(sprintf('There is no trigger with key: "%s"', (string) $triggerKey));
+        }
+
+        return $trigger->getState();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCalendarNames()
+    {
+        // no locks necessary for read...
+        return $this->res->getCalendarStorage()->getCollection()->distinct('name');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resetTriggerFromErrorState(Key $triggerKey)
+    {
+        $this->executeInLock(self::LOCK_TRIGGER_ACCESS, function() use ($triggerKey) {
+            $this->doResetTriggerFromErrorState($triggerKey);
+        });
+    }
+
+    /**
+     * @param Key $triggerKey
+     *
+     * @throws JobPersistenceException
+     */
+    public function doResetTriggerFromErrorState(Key $triggerKey)
+    {
+        if (null == $trigger = $this->retrieveTrigger($triggerKey)) {
+            throw new JobPersistenceException(sprintf('There is no trigger with identity: "%s"', (string) $triggerKey));
+        }
+
+        if ($trigger->getState() !== Trigger::STATE_ERROR) {
+            return;
+        }
+
+        $state = Trigger::STATE_WAITING;
+        if ($this->isTriggerGroupPaused($triggerKey->getGroup())) {
+            $state = Trigger::STATE_PAUSED;
+        }
+
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $trigger->getKey()->getName(),
+            'group' => $trigger->getKey()->getGroup(),
+        ], [
+            '$set' => [
+                'state' => $state,
+            ]
+        ]);
     }
 
     /**
@@ -1039,13 +1118,5 @@ class YadmStore implements JobStore
     public function isTriggerGroupPaused($groupName)
     {
         return (bool) $this->res->getPausedTriggerCol()->count(['groupName' => $groupName]);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getTriggerGroupNames()
-    {
-        return $this->res->getTriggerStorage()->getCollection()->distinct('group');
     }
 }

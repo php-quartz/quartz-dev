@@ -2,6 +2,7 @@
 namespace Quartz\Triggers;
 
 use Quartz\Core\Calendar;
+use Quartz\Core\DateBuilder;
 use Quartz\Core\SchedulerException;
 
 class SimpleTrigger extends AbstractTrigger
@@ -149,22 +150,6 @@ class SimpleTrigger extends AbstractTrigger
     }
 
     /**
-     * @return int
-     */
-    public function getTimesTriggered()
-    {
-        return $this->getValue('timesTriggered', 0);
-    }
-
-    /**
-     * @param int $timesTriggered
-     */
-    public function setTimesTriggered($timesTriggered)
-    {
-        $this->setValue('timesTriggered', $timesTriggered);
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function validate()
@@ -174,11 +159,6 @@ class SimpleTrigger extends AbstractTrigger
         if ($this->getRepeatCount() != 0 && $this->getRepeatInterval() < 1) {
             throw new SchedulerException('Repeat Interval cannot be zero.');
         }
-    }
-
-    public function mayFireAgain()
-    {
-        return (bool) $this->getNextFireTime();
     }
 
     public function getFireTimeAfter(\DateTime $afterTime = null)
@@ -277,65 +257,6 @@ class SimpleTrigger extends AbstractTrigger
         return (int) ($time / $this->getRepeatInterval());
     }
 
-    public function triggered(Calendar $calendar = null)
-    {
-        $this->setTimesTriggered($this->getTimesTriggered() + 1);
-        $this->setPreviousFireTime($nextFireTime = $this->getNextFireTime());
-        $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-        $yearToGiveUpSchedulingAt = ((int) date('Y')) + 100;
-
-        while ($nextFireTime != null && $calendar != null && !$calendar->isTimeIncluded($nextFireTime)) {
-            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-            if ($nextFireTime == null) {
-                break;
-            }
-
-            //avoid infinite loop
-            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
-                $nextFireTime = null;
-            }
-        }
-
-        $this->setNextFireTime($nextFireTime);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function computeFirstFireTime(Calendar $calendar = null)
-    {
-        $nextFireTime = $this->getStartTime();
-
-        $yearToGiveUpSchedulingAt = ((int) date('Y')) + 100;
-
-        while ($nextFireTime != null && $calendar != null && !$calendar->isTimeIncluded($nextFireTime)) {
-            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-            if ($nextFireTime == null) {
-                break;
-            }
-
-            //avoid infinite loop
-            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
-                return null;
-            }
-        }
-
-        $this->setNextFireTime($nextFireTime);
-
-        return $nextFireTime;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold)
-    {
-        // TODO: Implement updateWithNewCalendar() method.
-    }
-
     /**
      * <p>
      * Updates the <code>SimpleTrigger</code>'s state based on the
@@ -360,6 +281,8 @@ class SimpleTrigger extends AbstractTrigger
      * </li>
      * </ul>
      * </p>
+     *
+     * @param Calendar $cal
      */
     public function updateAfterMisfire(Calendar $cal = null)
     {
@@ -369,6 +292,90 @@ class SimpleTrigger extends AbstractTrigger
             return;
         }
 
-        // TODO: is not finished
+        if ($instr == self::MISFIRE_INSTRUCTION_SMART_POLICY) {
+            if ($this->getRepeatCount() == 0) {
+                $instr = self::MISFIRE_INSTRUCTION_FIRE_NOW;
+            } elseif ($this->getRepeatCount() == self::REPEAT_INDEFINITELY) {
+                $instr = self::MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT;
+            } else {
+                $instr = self::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT;
+            }
+        } elseif ($instr == self::MISFIRE_INSTRUCTION_FIRE_NOW && $this->getRepeatCount() != 0) {
+            $instr = self::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT;
+        }
+
+        if ($instr == self::MISFIRE_INSTRUCTION_FIRE_NOW) {
+            $this->setNextFireTime(new \DateTime());
+        } elseif ($instr == self::MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_EXISTING_COUNT) {
+            $newFireTime = $this->getFireTimeAfter(new \DateTime());
+            $yearToGiveUpSchedulingAt = DateBuilder::MAX_YEAR();
+            while ($newFireTime && $cal && false == $cal->isTimeIncluded(((int) $newFireTime->format('U')))) {
+                $newFireTime = $this->getFireTimeAfter($newFireTime);
+
+                if (null == $newFireTime) {
+                    break;
+                }
+
+                //avoid infinite loop
+                if (((int) $newFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
+                    $newFireTime = null;
+                }
+            }
+            $this->setNextFireTime($newFireTime);
+        } elseif ($instr == self::MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT) {
+            $newFireTime = $this->getFireTimeAfter(new \DateTime());
+            $yearToGiveUpSchedulingAt = DateBuilder::MAX_YEAR();
+            while ($newFireTime && $cal && false == $cal->isTimeIncluded(((int) $newFireTime->format('U')))) {
+                $newFireTime = $this->getFireTimeAfter($newFireTime);
+
+                if (null == $newFireTime) {
+                    break;
+                }
+
+                //avoid infinite loop
+                if (((int) $newFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
+                    $newFireTime = null;
+                }
+            }
+
+            if ($newFireTime) {
+                $timesMissed = $this->computeNumTimesFiredBetween($this->getNextFireTime(), $newFireTime);
+                $this->setTimesTriggered($this->getTimesTriggered() + $timesMissed);
+            }
+        } elseif ($instr == self::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT) {
+            $newFireTime = new \DateTime();
+            if ($this->getRepeatCount() != 0 && $this->getRepeatCount() != self::REPEAT_INDEFINITELY) {
+                $this->setRepeatCount($this->getRepeatCount() - $this->getTimesTriggered());
+                $this->setTimesTriggered(0);
+            }
+
+            if ($this->getEndTime() && $this->getEndTime() < $newFireTime) {
+                $this->setNextFireTime(null); // We are past the end time
+            } else {
+                $this->setStartTime($newFireTime);
+                $this->setNextFireTime($newFireTime);
+            }
+        } elseif ($instr == self::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT) {
+            $newFireTime = new \DateTime();
+            $timesMissed = $this->computeNumTimesFiredBetween($this->getNextFireTime(), $newFireTime);
+
+            if ($this->getRepeatCount() != 0 && $this->getRepeatCount() != self::REPEAT_INDEFINITELY) {
+                $remainingCount = $this->getRepeatCount() - ($this->getTimesTriggered() + $timesMissed);
+
+                if ($remainingCount <= 0) {
+                    $remainingCount = 0;
+                }
+
+                $this->setRepeatCount($remainingCount);
+                $this->setTimesTriggered(0);
+            }
+
+            if ($this->getEndTime() && $this->getEndTime() < $newFireTime) {
+                $this->setNextFireTime(null); // We are past the end time
+            } else {
+                $this->setStartTime($newFireTime);
+                $this->setNextFireTime($newFireTime);
+            }
+        }
     }
 }

@@ -15,10 +15,9 @@ interface JobStore
     /**
      * Store the given <code>{@link org.quartz.JobDetail}</code> and <code>{@link org.quartz.Trigger}</code>.
      *
-     * @param newJob
-     *          The <code>JobDetail</code> to be stored.
-     * @param newTrigger
-     *          The <code>Trigger</code> to be stored.
+     * @param JobDetail $newJob The <code>JobDetail</code> to be stored.
+     * @param Trigger   $newTrigger The <code>Trigger</code> to be stored.
+     *
      * @throws ObjectAlreadyExistsException
      *           if a <code>Job</code> with the same name/group already
      *           exists.
@@ -202,6 +201,89 @@ interface JobStore
      * @return Calendar|null The desired <code>Calendar</code>, or null if there is no match.
      */
     public function retrieveCalendar($calName);
+
+    /////////////////////////////////////////////////////////////////////////////
+    //
+    // Informational methods
+    //
+    /////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Get all of the Triggers that are associated to the given Job.
+     *
+     * <p>
+     * If there are no matches, a zero-length array should be returned.
+     * </p>
+     *
+     * @param Key $jobKey
+     *
+     * @return Trigger[]
+     */
+    public function getTriggersForJob(Key $jobKey);
+
+    /**
+     * Get the names of all of the <code>{@link org.quartz.Job}</code>
+     * groups.
+     *
+     * <p>
+     * If there are no known group names, the result should be a zero-length
+     * array (not <code>null</code>).
+     * </p>
+     *
+     * @return string[]
+     */
+    public function getJobGroupNames();
+
+    /**
+     * Get the names of all of the <code>{@link org.quartz.Trigger}</code>
+     * groups.
+     *
+     * <p>
+     * If there are no known group names, the result should be a zero-length
+     * array (not <code>null</code>).
+     * </p>
+     *
+     * @return string[]
+     */
+    public function getTriggerGroupNames();
+
+    /**
+     * Get the current state of the identified <code>{@link Trigger}</code>.
+     *
+     * @param Key $triggerKey
+     *
+     * @return string
+     */
+    public function getTriggerState(Key $triggerKey);
+
+    /**
+     * Get the names of all of the <code>{@link org.quartz.Calendar}</code> s
+     * in the <code>JobStore</code>.
+     *
+     * <p>
+     * If there are no Calendars in the given group name, the result should be
+     * a zero-length array (not <code>null</code>).
+     * </p>
+     *
+     * @return string[]
+     */
+    public function getCalendarNames();
+
+    /**
+     * Reset the current state of the identified <code>{@link Trigger}</code>
+     * from {@link TriggerState#ERROR} to {@link TriggerState#NORMAL} or
+     * {@link TriggerState#PAUSED} as appropriate.
+     *
+     * <p>Only affects triggers that are in ERROR state - if identified trigger is not
+     * in that state then the result is a no-op.</p>
+     *
+     * <p>The result will be the trigger returning to the normal, waiting to
+     * be fired state, unless the trigger's group has been paused, in which
+     * case it will go into the PAUSED state.</p>
+     *
+     * @param Key $triggerKey
+     */
+    public function resetTriggerFromErrorState(Key $triggerKey);
 
     /////////////////////////////////////////////////////////////////////////////
     //

@@ -1,8 +1,8 @@
 <?php
 namespace Quartz\Triggers;
+
 use G4\Cron\CronExpression;
 use Quartz\Core\Calendar;
-
 
 /**
  * <p>
@@ -166,19 +166,6 @@ class CronTrigger extends AbstractTrigger
         return $resultTime;
     }
 
-    /**
-     * <p>
-     * Determines whether or not the <code>CronTrigger</code> will occur
-     * again.
-     * </p>
-     *
-     * {@inheritdoc}
-     */
-    public function mayFireAgain()
-    {
-        return (bool) $this->getNextFireTime();
-    }
-
     protected function validateMisfireInstruction($misfireInstruction)
     {
         return $misfireInstruction >= self::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY
@@ -224,96 +211,6 @@ class CronTrigger extends AbstractTrigger
         } elseif ($instr == self::MISFIRE_INSTRUCTION_FIRE_ONCE_NOW) {
             $this->setNextFireTime(new \DateTime());
         }
-    }
-
-    /**
-     * <p>
-     * Called when the <code>{@link Scheduler}</code> has decided to 'fire'
-     * the trigger (execute the associated <code>Job</code>), in order to
-     * give the <code>Trigger</code> a chance to update itself for its next
-     * triggering (if any).
-     * </p>
-     *
-     * {@inheritdoc}
-     */
-    public function triggered(Calendar $calendar = null)
-    {
-        $this->setPreviousFireTime($nextFireTime = $this->getNextFireTime());
-        $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-        while ($nextFireTime && $calendar && false == $calendar->isTimeIncluded(((int) $nextFireTime->format('U')))) {
-            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-        }
-
-        $this->setNextFireTime($nextFireTime);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function updateWithNewCalendar(Calendar $cal = null, $misfireThreshold)
-    {
-        $nextFireTime = $this->getFireTimeAfter($this->getPreviousFireTime());
-
-        $now = new \DateTime();
-        $yearToGiveUpSchedulingAt = ((int) date('Y')) + 100;
-
-        while ($nextFireTime && $cal && false == $cal->isTimeIncluded(((int) $nextFireTime->format('U')))) {
-            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-            if (null == $nextFireTime) {
-                break;
-            }
-
-            //avoid infinite loop
-            if (((int) $nextFireTime->format('Y')) > $yearToGiveUpSchedulingAt) {
-                $nextFireTime = null;
-            }
-
-            if ($nextFireTime && $nextFireTime < $now) {
-                $diff = ((int) $now->format('U')) - ((int) $nextFireTime->format('U'));
-
-                if ($diff >= $misfireThreshold) {
-                    $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-                }
-            }
-        }
-
-        $this->setNextFireTime($nextFireTime);
-    }
-
-    /**
-     * <p>
-     * Called by the scheduler at the time a <code>Trigger</code> is first
-     * added to the scheduler, in order to have the <code>Trigger</code>
-     * compute its first fire time, based on any associated calendar.
-     * </p>
-     *
-     * <p>
-     * After this method has been called, <code>getNextFireTime()</code>
-     * should return a valid answer.
-     * </p>
-     *
-     * @return \DateTime the first time at which the <code>Trigger</code> will be fired
-     *         by the scheduler, which is also the same value <code>getNextFireTime()</code>
-     *         will return (until after the first firing of the <code>Trigger</code>).
-     *         </p>
-     *
-     * {@inheritdoc}
-     */
-    public function computeFirstFireTime(Calendar $calendar = null)
-    {
-        $nextFireTime = clone $this->getStartTime();
-        $nextFireTime->sub(new \DateInterval('PT1S'));
-        $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-
-        while ($nextFireTime && $calendar && false == $calendar->isTimeIncluded(((int) $nextFireTime->format('U')))) {
-            $nextFireTime = $this->getFireTimeAfter($nextFireTime);
-        }
-
-        $this->setNextFireTime($nextFireTime);
-
-        return $nextFireTime;
     }
 
     /**

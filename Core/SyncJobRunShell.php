@@ -21,7 +21,7 @@ class SyncJobRunShell implements JobRunShell
      */
     public function execute(Trigger $trigger)
     {
-        if (false == $jobDetail = $this->scheduler->retrieveJob($trigger->getJobKey())) {
+        if (false == $jobDetail = $this->scheduler->getJobDetail($trigger->getJobKey())) {
             // @todo set error description into trigger
             $this->scheduler->notifyJobStoreJobComplete($trigger, null, CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
 
@@ -30,7 +30,7 @@ class SyncJobRunShell implements JobRunShell
 
         $calendar = null;
         if ($trigger->getCalendarName()) {
-            if (false == $calendar = $this->scheduler->retrieveCalendar($trigger->getCalendarName())) {
+            if (false == $calendar = $this->scheduler->getCalendar($trigger->getCalendarName())) {
                 // @todo set error description into trigger
                 $this->scheduler->notifyJobStoreJobComplete($trigger, $jobDetail, CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
 
