@@ -6,6 +6,7 @@ use Makasim\Yadm\PessimisticLock;
 use Makasim\Yadm\Storage;
 use MongoDB\Client;
 use MongoDB\Collection;
+use MongoDB\Driver\Exception\RuntimeException;
 use Quartz\Calendar\CalendarClassFactoryTrait;
 use Quartz\JobDetail\JobDetail;
 use Quartz\Triggers\TriggerClassFactoryTrait;
@@ -61,6 +62,7 @@ class YadmStoreResource
             'uri' => 'mongodb://localhost:27017',
             'uriOptions' => [],
             'driverOptions' => [],
+            'sessionId' => 'quartz',
             'dbName' => 'quartz',
             'managementLockCol' => 'managementLock',
             'calendarCol' => 'calendar',
@@ -100,7 +102,7 @@ class YadmStoreResource
     public function getManagementLock()
     {
         if (false == $this->managementLock) {
-            $this->managementLock = new PessimisticLock($this->getCollection($this->options['managementLockCol']));
+            $this->managementLock = new PessimisticLock($this->getCollection($this->options['managementLockCol']), $this->options['sessionId']);
         }
 
         return $this->managementLock;
@@ -176,5 +178,70 @@ class YadmStoreResource
         }
 
         return $this->pausedTriggerCol;
+    }
+
+    public function createIndexes()
+    {
+        try {
+            $this->getTriggerStorage()->getCollection()->dropIndexes();
+            $this->getJobStorage()->getCollection()->dropIndexes();
+            $this->getCalendarStorage()->getCollection()->dropIndexes();
+            $this->getPausedTriggerCol()->dropIndexes();
+            $this->getFiredTriggerStorage()->getCollection()->dropIndexes();
+        } catch (RuntimeException $e) {
+        }
+
+        $this->getManagementLock()->createIndexes();
+
+        $this->getTriggerStorage()->getCollection()->createIndexes([
+            [
+                'key' => ['key' => 1, 'group' => 1], 'unique' => true,
+            ],
+            [
+                'key' => ['group' => 1],
+            ],
+            [
+                'key' => ['jobKey' => 1, 'jobGroup' => 1],
+            ],
+            [
+                'key' => ['jobGroup' => 1],
+            ],
+            [
+                'key' => ['calendarName' => 1],
+            ],
+            [
+                'key' => ['state' => 1],
+            ],
+            [
+                'key' => ['nextFireTime.unix' => 1],
+            ],
+        ]);
+
+        $this->getJobStorage()->getCollection()->createIndexes([
+            [
+                'key' => ['key' => 1, 'group' => 1], 'unique' => true,
+            ],
+            [
+                'key' => ['group' => 1],
+            ],
+        ]);
+
+        $this->getCalendarStorage()->getCollection()->createIndexes([
+            [
+                'key' => ['name' => 1], 'unique' => true,
+            ],
+        ]);
+
+        $this->getPausedTriggerCol()->createIndexes([
+            [
+                'key' => ['groupName' => 1],
+            ],
+        ]);
+
+        $this->getFiredTriggerStorage()->getCollection()->createIndexes([
+            [
+                'key' => ['fireInstanceId' => 1],
+            ],
+        ]);
     }
 }
