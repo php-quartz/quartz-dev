@@ -49,7 +49,7 @@ class SimpleScheduleBuilder extends ScheduleBuilder
      */
     private $misfireInstruction;
 
-    private function __construct()
+    protected function __construct()
     {
         $this->interval = 0;
         $this->repeatCount = 0;

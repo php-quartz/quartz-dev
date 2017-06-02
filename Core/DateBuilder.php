@@ -100,4 +100,11 @@ class DateBuilder
             throw new \InvalidArgumentException('Invalid year (must be >= 0 and <= ' . self::MAX_YEAR());
         }
     }
+
+    public static function validateIntervalUnit($intervalUnit)
+    {
+        if ($intervalUnit < IntervalUnit::SECOND || $intervalUnit > IntervalUnit::YEAR) {
+            throw new \InvalidArgumentException('Invalid interval unit.');
+        }
+    }
 }

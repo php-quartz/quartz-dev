@@ -167,11 +167,18 @@ abstract class AbstractTrigger implements Trigger
         return $this->getValue('startTime', null, \DateTime::class);
     }
 
+
     /**
      * {@inheritdoc}
      */
     public function setStartTime(\DateTime $startTime)
     {
+        $endTime = $this->getEndTime();
+
+        if ($endTime && $endTime < $startTime) {
+            throw new \InvalidArgumentException('End time cannot be before start time');
+        }
+
         $this->setValue('startTime', $startTime);
     }
 
@@ -188,6 +195,12 @@ abstract class AbstractTrigger implements Trigger
      */
     public function setEndTime(\DateTime $endTime = null)
     {
+        $startTime = $this->getStartTime();
+
+        if ($startTime && $endTime && $startTime > $endTime) {
+            throw new \InvalidArgumentException('End time cannot be before start time');
+        }
+
         $this->setValue('endTime', $endTime);
     }
 
@@ -336,7 +349,52 @@ abstract class AbstractTrigger implements Trigger
      */
     public function setMisfireInstruction($misfireInstruction)
     {
+        if (false == $this->validateMisfireInstruction($misfireInstruction)) {
+            throw new \InvalidArgumentException('The misfire instruction code is invalid for this type of trigger.');
+        }
+
         $this->setValue('misfireInstruction', $misfireInstruction);
+    }
+
+    /**
+     * @param int $candidateMisfireInstruction
+     *
+     * @return bool
+     */
+    protected abstract function validateMisfireInstruction($candidateMisfireInstruction);
+
+    /**
+     * <p>
+     * Gets the time zone within which time calculations related to this
+     * trigger will be performed.
+     * </p>
+     *
+     * <p>
+     * If null, the system default TimeZone will be used.
+     * </p>
+     *
+     * @return \DateTimeZone
+     */
+    public function getTimeZone()
+    {
+        if (false == $timeZone = $this->getValue('timeZone')) {
+            $timeZone = date_default_timezone_get();
+        }
+
+        return new \DateTimeZone($timeZone);
+    }
+
+    /**
+     * <p>
+     * Sets the time zone within which time calculations related to this
+     * trigger will be performed.
+     * </p>
+     *
+     * @param \DateTimeZone $timeZone the desired TimeZone, or null for the system default.
+     */
+    public function setTimeZone(\DateTimeZone $timeZone)
+    {
+        $this->setValue('timeZone', $timeZone->getName());
     }
 
     /**

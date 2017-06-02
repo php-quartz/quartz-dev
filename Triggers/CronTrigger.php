@@ -12,6 +12,8 @@ use Quartz\Core\Calendar;
  */
 class CronTrigger extends AbstractTrigger
 {
+    const INSTANCE = 'cron';
+
     /**
      * <p>
      * Instructs the <code>{@link Scheduler}</code> that upon a mis-fire
@@ -39,35 +41,7 @@ class CronTrigger extends AbstractTrigger
 
     public function __construct()
     {
-        parent::__construct('cron');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setStartTime(\DateTime $startTime)
-    {
-        $endTime = $this->getEndTime();
-
-        if ($endTime != null && $endTime < $startTime) {
-            throw new \InvalidArgumentException('End time cannot be before start time');
-        }
-
-        parent::setStartTime($startTime);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setEndTime(\DateTime $endTime = null)
-    {
-        $startTime = $this->getStartTime();
-
-        if ($startTime != null && $endTime != null && $startTime > $endTime) {
-            throw new \InvalidArgumentException('End time cannot be before start time');
-        }
-
-        parent::setEndTime($endTime);
+        parent::__construct(self::INSTANCE);
     }
 
     /**
@@ -166,6 +140,9 @@ class CronTrigger extends AbstractTrigger
         return $resultTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function validateMisfireInstruction($misfireInstruction)
     {
         return $misfireInstruction >= self::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY

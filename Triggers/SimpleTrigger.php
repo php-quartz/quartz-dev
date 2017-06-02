@@ -7,6 +7,8 @@ use Quartz\Core\SchedulerException;
 
 class SimpleTrigger extends AbstractTrigger
 {
+    const INSTANCE = 'simple';
+
     /**
      * <p>
      * Instructs the <code>{@link Scheduler}</code> that upon a mis-fire
@@ -114,7 +116,7 @@ class SimpleTrigger extends AbstractTrigger
 
     public function __construct()
     {
-        parent::__construct('simple');
+        parent::__construct(self::INSTANCE);
     }
 
     /**
@@ -161,6 +163,25 @@ class SimpleTrigger extends AbstractTrigger
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    protected function validateMisfireInstruction($misfireInstruction)
+    {
+        if ($misfireInstruction < self::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY) {
+            return false;
+        }
+
+        if ($misfireInstruction > self::MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_EXISTING_COUNT) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getFireTimeAfter(\DateTime $afterTime = null)
     {
         if (($this->getTimesTriggered() > $this->getRepeatCount())

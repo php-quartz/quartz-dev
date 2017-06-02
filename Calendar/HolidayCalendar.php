@@ -17,13 +17,14 @@ use Quartz\Core\Calendar;
  */
 class HolidayCalendar extends BaseCalendar
 {
+    const INSTANCE = 'holiday';
+
     /**
      * {@inheritdoc}
      */
     public function __construct(Calendar $baseCalendar = null)
     {
-        parent::__construct($baseCalendar);
-        $this->setInstance('holiday');
+        parent::__construct(self::INSTANCE, $baseCalendar);
     }
 
     /**

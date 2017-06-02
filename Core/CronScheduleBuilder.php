@@ -48,7 +48,7 @@ class CronScheduleBuilder extends ScheduleBuilder
     /**
      * @param CronExpression $cronExpression
      */
-    private function __construct(CronExpression $cronExpression)
+    protected function __construct(CronExpression $cronExpression)
     {
         $this->cronExpression = $cronExpression;
         $this->misfireInstruction = CronTrigger::MISFIRE_INSTRUCTION_SMART_POLICY;

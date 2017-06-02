@@ -12,8 +12,9 @@ abstract class BaseCalendar implements Calendar
     use ObjectsTrait;
     use CalendarClassFactoryTrait;
 
-    public function __construct(Calendar $baseCalendar = null)
+    public function __construct($instance, Calendar $baseCalendar = null)
     {
+        $this->setInstance($instance);
         $this->setBaseCalendar($baseCalendar);
     }
 

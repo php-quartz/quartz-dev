@@ -17,7 +17,7 @@ trait CalendarClassFactoryTrait
         }
 
         switch ($values['instance']) {
-            case 'holiday':
+            case HolidayCalendar::INSTANCE:
                 return HolidayCalendar::class;
             default:
                 throw new SchedulerException(sprintf('Unknown calendar instance: "%s"', $values['instance']));
