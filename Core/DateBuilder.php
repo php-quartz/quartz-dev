@@ -31,13 +31,14 @@ namespace Quartz\Core;
  */
 class DateBuilder
 {
-    const SUNDAY = 1;
-    const MONDAY = 2;
-    const TUESDAY = 3;
-    const WEDNESDAY = 4;
-    const THURSDAY = 5;
-    const FRIDAY = 6;
-    const SATURDAY = 7;
+    // ISO-8601
+    const MONDAY = 1;
+    const TUESDAY = 2;
+    const WEDNESDAY = 3;
+    const THURSDAY = 4;
+    const FRIDAY = 5;
+    const SATURDAY = 6;
+    const SUNDAY = 7;
 
     public static function MAX_YEAR()
     {
@@ -54,7 +55,7 @@ class DateBuilder
 
     public static function validateDayOfWeek($dayOfWeek)
     {
-        if ($dayOfWeek < self::SUNDAY || $dayOfWeek > self::SATURDAY) {
+        if ($dayOfWeek < self::MONDAY || $dayOfWeek > self::SUNDAY) {
             throw new \InvalidArgumentException('Invalid day of week.');
         }
     }

@@ -23,6 +23,8 @@ trait TriggerClassFactoryTrait
                 return CronTrigger::class;
             case CalendarIntervalTrigger::INSTANCE:
                 return CalendarIntervalTrigger::class;
+            case DailyTimeIntervalTrigger::INSTANCE:
+                return DailyTimeIntervalTrigger::class;
             default:
                 throw new SchedulerException(sprintf('Unknown trigger instance: "%s"', $values['instance']));
         }

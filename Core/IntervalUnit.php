@@ -3,7 +3,7 @@ namespace Quartz\Core;
 
 interface IntervalUnit
 {
-    const SECOND  = 1;
+    const SECOND = 1;
     const MINUTE = 2;
     const HOUR = 3;
     const DAY = 4;

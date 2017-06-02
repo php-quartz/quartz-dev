@@ -70,6 +70,8 @@ class CalendarIntervalTrigger extends AbstractTrigger
      */
     public function setRepeatIntervalUnit($intervalUnit)
     {
+        DateBuilder::validateIntervalUnit($intervalUnit);
+
         $this->setValue('repeatIntervalUnit', $intervalUnit);
     }
 
@@ -432,7 +434,7 @@ class CalendarIntervalTrigger extends AbstractTrigger
         if ($instr === self::MISFIRE_INSTRUCTION_DO_NOTHING) {
             $newFireTime = $this->getFireTimeAfter(new \DateTime());
 
-            while ($newFireTime && $cal && $cal->isTimeIncluded(((int) $newFireTime->format('U')))) {
+            while ($newFireTime && $cal && false == $cal->isTimeIncluded(((int) $newFireTime->format('U')))) {
                 $newFireTime = $this->getFireTimeAfter($newFireTime);
             }
 
