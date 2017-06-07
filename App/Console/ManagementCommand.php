@@ -59,7 +59,6 @@ class ManagementCommand extends Command
 
         if ($createIndexes) {
             $output->writeln('Creating storage indexes');
-            $scheduler->getStore()->dropIndexes(); // is not part of interface :(
             $scheduler->getStore()->createIndexes(); // is not part of interface :(
         }
 

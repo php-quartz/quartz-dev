@@ -1,9 +1,13 @@
 <?php
 namespace Quartz\Tests\Functional;
 
+use function Makasim\Values\register_cast_hooks;
 use Quartz\Calendar\HolidayCalendar;
+use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobPersistenceException;
 use Quartz\Core\Key;
+use Quartz\Core\Scheduler;
+use Quartz\Core\SchedulerException;
 use Quartz\Core\Trigger;
 use Quartz\JobDetail\JobDetail;
 use Quartz\Store\ObjectAlreadyExistsException;
@@ -18,6 +22,16 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
      */
     private $store;
 
+    /**
+     * @var YadmStoreResource
+     */
+    private $res;
+
+    public static function setUpBeforeClass()
+    {
+        register_cast_hooks();
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -27,7 +41,9 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
             'dbName' => getenv('MONGODB_DB')
         ];
 
-        $this->store = new YadmStore(new YadmStoreResource($config));
+        $this->res = new YadmStoreResource($config);
+        $this->store = new YadmStore($this->res);
+        $this->store->initialize($this->createMock(Scheduler::class));
         $this->store->clearAllSchedulingData();
     }
 
@@ -575,5 +591,852 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
 
         $this->assertNotNull($this->store->retrieveTrigger($key));
         $this->assertNotNull($this->store->retrieveJob($jobKey));
+    }
+
+    public function testCouldPauseTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+
+        $this->store->storeTrigger($trigger);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key)->getState());
+
+        $this->store->pauseTrigger($key);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key)->getState());
+    }
+
+    public function testOnPauseJobShouldPauseAllAssociatedTriggers()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $jobKey = new Key('job-name', 'job-group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setJobKey(clone $jobKey);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setJobKey(clone $jobKey);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+
+        $this->store->pauseJob($jobKey);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key2)->getState());
+    }
+
+    public function testShouldResumeTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setNextFireTime(new \DateTime('+1 minute'));
+
+        $this->store->storeTrigger($trigger);
+        $this->store->pauseTrigger($key);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key)->getState());
+
+        $this->store->resumeTrigger($key);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key)->getState());
+    }
+
+    public function testOnResumeTriggerShouldUpdateMisfiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setNextFireTime(new \DateTime('-1 hours'));
+        $trigger->setMisfireInstruction(SimpleTrigger::MISFIRE_INSTRUCTION_FIRE_NOW);
+
+        $this->store->storeTrigger($trigger);
+        $this->store->pauseTrigger($key);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key)->getState());
+
+        $this->store->resumeTrigger($key);
+
+        $trigger = $this->store->retrieveTrigger($key);
+
+        $this->assertSame(Trigger::STATE_WAITING, $trigger->getState());
+        // new next fire time was updated and it is closer to now
+        $this->assertEquals(time(), $trigger->getNextFireTime()->format('U'), '', 10);
+    }
+
+    public function testOnResumeTriggerShouldUpdateMisfiredTriggerAndSetStateComplete()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setNextFireTime(new \DateTime('-1 hours'));
+        $trigger->setEndTime(new \DateTime('-10 minutes'));
+        $trigger->setMisfireInstruction(SimpleTrigger::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT);
+
+        $this->store->storeTrigger($trigger);
+        $this->store->pauseTrigger($key);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key)->getState());
+
+        $this->store->resumeTrigger($key);
+
+        $trigger = $this->store->retrieveTrigger($key);
+
+        $this->assertSame(Trigger::STATE_COMPLETE, $trigger->getState());
+        $this->assertNull($trigger->getNextFireTime());
+    }
+
+    public function testOnResumeJobShouldResumeAllAssociatedTriggers()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $jobKey = new Key('name', 'group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setJobKey($jobKey);
+        $trigger1->setNextFireTime(new \DateTime('+1 minute'));
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setJobKey($jobKey);
+        $trigger2->setNextFireTime(new \DateTime('+1 minute'));
+
+        $job = new JobDetail();
+        $job->setKey($jobKey);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+        $this->store->storeJob($job);
+
+        $this->store->pauseJob($jobKey);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key2)->getState());
+
+        $this->store->resumeJob($jobKey);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+    }
+
+    public function testShouldPauseAllTriggers()
+    {
+        $key1 = new Key('name1', 'group1');
+        $key2 = new Key('name2', 'group2');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setNextFireTime(new \DateTime('+1 minute'));
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setNextFireTime(new \DateTime('+1 minute'));
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertEmpty($this->store->getPausedTriggerGroups());
+
+        $this->store->pauseAll();
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertSame(['group1', 'group2', '_$_ALL_GROUPS_PAUSED_$_'], $this->store->getPausedTriggerGroups());
+    }
+
+    public function testShouldResumeAllTriggers()
+    {
+        $key1 = new Key('name1', 'group1');
+        $key2 = new Key('name2', 'group2');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setNextFireTime(new \DateTime('+1 minute'));
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setNextFireTime(new \DateTime('+1 minute'));
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        $this->store->pauseAll();
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertSame(['group1', 'group2', '_$_ALL_GROUPS_PAUSED_$_'], $this->store->getPausedTriggerGroups());
+
+        $this->store->resumeAll();
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertEmpty($this->store->getPausedTriggerGroups());
+    }
+
+    public function testShouldReturnAllTriggersForThisJob()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $key3 = new Key('name3', 'group');
+        $jobKey = new Key('name', 'group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setJobKey(clone $jobKey);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setJobKey(clone $jobKey);
+
+        $trigger3 = new SimpleTrigger();
+        $trigger3->setKey($key3);
+
+        $job = new JobDetail();
+        $job->setKey($jobKey);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+        $this->store->storeTrigger($trigger3);
+        $this->store->storeJob($job);
+
+        $triggers = $this->store->getTriggersForJob($jobKey);
+
+        $this->assertCount(2, $triggers);
+    }
+
+    public function testShouldReturnAllJobGroupNames()
+    {
+        $job1 = new JobDetail();
+        $job1->setKey(new Key('name', 'group1'));
+
+        $job2 = new JobDetail();
+        $job2->setKey(new Key('name', 'group2'));
+
+        $this->store->storeJob($job1);
+        $this->store->storeJob($job2);
+
+        $this->assertEquals(['group1', 'group2'], $this->store->getJobGroupNames());
+    }
+
+    public function testShouldReturnAllTriggerGroupNames()
+    {
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey(new Key('name', 'group1'));
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey(new Key('name', 'group2'));
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        $this->assertEquals(['group1', 'group2'], $this->store->getTriggerGroupNames());
+    }
+
+    public function testShouldReturnTriggerState()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+
+        $this->store->storeTrigger($trigger);
+        $this->store->pauseTrigger($key);
+
+        $this->assertEquals(Trigger::STATE_PAUSED, $this->store->getTriggerState($key));
+    }
+
+    public function testOnGetTriggerStateShouldThrowExceptionIfTriggerDoesNotExist()
+    {
+        $this->expectException(SchedulerException::class);
+        $this->expectExceptionMessage('There is no trigger with key: "group.name"');
+
+        $this->store->getTriggerState(new Key('name', 'group'));
+    }
+
+    public function testShouldReturnAllCalendarNames()
+    {
+        $this->store->storeCalendar('cal1', new HolidayCalendar());
+        $this->store->storeCalendar('cal2', new HolidayCalendar());
+
+        $this->assertEquals(['cal1', 'cal2'], $this->store->getCalendarNames());
+    }
+
+    public function testShouldResetTriggerFromErrorState()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+
+        $this->store->storeTrigger($trigger);
+
+        // force trigger error state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ERROR,
+            ]
+        ]);
+
+        // guard
+        $this->assertSame(Trigger::STATE_ERROR, $this->store->retrieveTrigger($key)->getState());
+
+        // test
+        $this->store->resetTriggerFromErrorState($key);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key)->getState());
+    }
+
+    public function testOnResetTriggerFromErrorStateShouldSetStatePausedIfGroupPaused()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+
+        $this->store->storeTrigger($trigger);
+        $this->store->insertPausedTriggerGroup('group');
+
+        // force trigger error state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ERROR,
+            ]
+        ]);
+
+        // guard
+        $this->assertSame(Trigger::STATE_ERROR, $this->store->retrieveTrigger($key)->getState());
+
+        // test
+        $this->store->resetTriggerFromErrorState($key);
+
+        $this->assertSame(Trigger::STATE_PAUSED, $this->store->retrieveTrigger($key)->getState());
+    }
+
+    public function testOnResetTriggerFromErrorStateShouldThrowExceptionIfTriggerDoesNotExist()
+    {
+        $this->expectException(SchedulerException::class);
+        $this->expectExceptionMessage('There is no trigger with identity: "group.name"');
+
+        // test
+        $this->store->resetTriggerFromErrorState(new Key('name', 'group'));
+    }
+
+    public function testShouldAcquireNextTriggers()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setNextFireTime(new \DateTime());
+        $trigger1->setKey($key1);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setNextFireTime(new \DateTime('+10 minutes'));
+        $trigger2->setKey($key2);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+
+        $triggers = $this->store->acquireNextTriggers(time() + 10, 10, 0);
+
+        $this->assertCount(1, $triggers);
+        $this->assertSame((string) $key1, (string) $triggers[0]->getKey());
+        $this->assertSame(Trigger::STATE_ACQUIRED, $this->store->retrieveTrigger($key1)->getState());
+    }
+
+    public function testShouldAcquireMisfiredTriggers()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $key3 = new Key('name3', 'group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setNextFireTime(new \DateTime('-1 hour'));
+        $trigger1->setKey($key1);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setNextFireTime(new \DateTime());
+        $trigger2->setKey($key2);
+
+        $trigger3 = new SimpleTrigger();
+        $trigger3->setNextFireTime(new \DateTime('+1 hour'));
+        $trigger3->setKey($key3);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+        $this->store->storeTrigger($trigger3);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key3)->getState());
+
+        $triggers = $this->store->acquireNextTriggers(time() + 10, 10, 0);
+
+        $this->assertCount(2, $triggers);
+        $this->assertSame((string) $key2, (string) $triggers[0]->getKey());
+        $this->assertSame((string) $key1, (string) $triggers[1]->getKey());
+        $this->assertSame(Trigger::STATE_ACQUIRED, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertSame(Trigger::STATE_ACQUIRED, $this->store->retrieveTrigger($key1)->getState());
+    }
+
+    public function testShouldNotAcquireMisfiredTriggersIfThereIsNoFreeSpace()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $key3 = new Key('name3', 'group');
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setNextFireTime(new \DateTime('-1 hour'));
+        $trigger1->setKey($key1);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setNextFireTime(new \DateTime());
+        $trigger2->setKey($key2);
+
+        $trigger3 = new SimpleTrigger();
+        $trigger3->setNextFireTime(new \DateTime('+1 hour'));
+        $trigger3->setKey($key3);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+        $this->store->storeTrigger($trigger3);
+
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertSame(Trigger::STATE_WAITING, $this->store->retrieveTrigger($key3)->getState());
+
+        $triggers = $this->store->acquireNextTriggers(time() + 10, 1, 0); // only one trigger
+
+        $this->assertCount(1, $triggers);
+        $this->assertSame((string) $key2, (string) $triggers[0]->getKey());
+        $this->assertSame(Trigger::STATE_ACQUIRED, $this->store->retrieveTrigger($key2)->getState());
+    }
+
+    public function testOnTriggerFiredShouldCreateFiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatCount(0);
+        $trigger->setStartTime(new \DateTime());
+        $trigger->setRepeatInterval(10);
+        $trigger->computeFirstFireTime();
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $firedTriggers = $this->store->triggersFired([$trigger], time() + 30);
+
+        $this->assertCount(1, $firedTriggers);
+
+        $this->assertNotNull($this->store->retrieveFireTrigger($firedTriggers[0]->getFireInstanceId()));
+    }
+
+    public function testOnTriggerFiredShouldCreateSeveralFiredTriggerIfNextFireTimeBeforeNoLaterThan()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime('2012-12-12 00:00:00');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(SimpleTrigger::REPEAT_INDEFINITELY);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+        $trigger->setMisfireInstruction(Trigger::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $noLaterThan = ((int) $startTime->format('U')) + 25;
+
+        $firedTriggers = $this->store->triggersFired([$trigger], $noLaterThan);
+
+        $this->assertCount(3, $firedTriggers);
+    }
+
+    public function testOnTriggerFiredShouldReturnEmptyIfThereIsNotTriggerWithKey()
+    {
+        $key = new Key('name', 'group');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+
+        // $this->store->storeTrigger($trigger); do not store this trigger
+
+        $this->assertEmpty($this->store->triggersFired([$trigger], time() + 100));
+    }
+
+    public function testOnTriggerFiredShouldReturnEmptyIfTriggerStateIsNotAcquired()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(SimpleTrigger::REPEAT_INDEFINITELY);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+        $trigger->setMisfireInstruction(Trigger::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+
+        $this->store->storeTrigger($trigger);
+
+        $this->assertEmpty($this->store->triggersFired([$trigger], time() + 100));
+    }
+
+    public function testOnTriggerFiredShouldReturnEmptyIfCalendarWasNotFound()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(SimpleTrigger::REPEAT_INDEFINITELY);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+        $trigger->setMisfireInstruction(Trigger::MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+        $trigger->setCalendarName('missing-calendar');
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $this->assertEmpty($this->store->triggersFired([$trigger], time() + 100));
+    }
+
+    public function testOnTriggerFiredShouldSetStateCompletedIfTriggerNextFireTimeIsNull()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(0);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+        $this->assertSame(Trigger::STATE_COMPLETE, $this->store->retrieveTrigger($key)->getState());
+    }
+
+    public function testOnTriggerFiredShouldUpdateMisfiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime('-1 hour');
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(1);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+        $trigger->setMisfireInstruction(SimpleTrigger::MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger], time() + 100);
+
+        // fires now and plus one repeat
+        $this->assertCount(2, $fireTriggers);
+    }
+
+    public function testOnTriggerJobCompleteShouldRemoveTriggerAndFiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setJobKey(new Key('name', 'group'));
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(0);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+
+        // test
+        $this->store->triggeredJobComplete($fireTriggers[0], new JobDetail(), CompletedExecutionInstruction::DELETE_TRIGGER);
+
+        $this->assertNull($this->store->retrieveTrigger($key));
+        $this->assertNotEmpty($fireTriggers[0]->getFireInstanceId());
+        $this->assertNull($this->store->retrieveFireTrigger($fireTriggers[0]->getFireInstanceId()));
+    }
+
+    public function testOnTriggerJobCompleteShouldSetTriggerStateCompleteAndDeleteFiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(0);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+
+        // test
+        $this->store->triggeredJobComplete($fireTriggers[0], new JobDetail(), CompletedExecutionInstruction::SET_TRIGGER_COMPLETE);
+
+        $this->assertSame(Trigger::STATE_COMPLETE, $this->store->retrieveTrigger($key)->getState());
+        $this->assertNotEmpty($fireTriggers[0]->getFireInstanceId());
+        $this->assertNull($this->store->retrieveFireTrigger($fireTriggers[0]->getFireInstanceId()));
+    }
+
+    public function testOnTriggerJobCompleteShouldSetTriggerStateErrorAndDeleteFiredTrigger()
+    {
+        $key = new Key('name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger = new SimpleTrigger();
+        $trigger->setKey($key);
+        $trigger->setRepeatInterval(10);
+        $trigger->setRepeatCount(0);
+        $trigger->setStartTime($startTime);
+        $trigger->setNextFireTime($startTime);
+
+        $this->store->storeTrigger($trigger);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key->getName(),
+            'group' => $key->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+
+        // test
+        $fireTriggers[0]->setErrorMessage('the error message');
+        $this->store->triggeredJobComplete($fireTriggers[0], new JobDetail(), CompletedExecutionInstruction::SET_TRIGGER_ERROR);
+
+        $trigger = $this->store->retrieveTrigger($key);
+
+        $this->assertSame(Trigger::STATE_ERROR, $trigger->getState());
+        $this->assertSame('the error message', $trigger->getErrorMessage());
+        $this->assertNotEmpty($fireTriggers[0]->getFireInstanceId());
+        $this->assertNull($this->store->retrieveFireTrigger($fireTriggers[0]->getFireInstanceId()));
+    }
+
+    public function testOnTriggerJobCompleteShouldSetAllJobTriggersStateCompleteAndDeleteFiredTrigger()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $jobKey = new Key('job-name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setJobKey(clone $jobKey);
+        $trigger1->setRepeatInterval(10);
+        $trigger1->setRepeatCount(0);
+        $trigger1->setStartTime($startTime);
+        $trigger1->setNextFireTime($startTime);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setJobKey(clone $jobKey);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key1->getName(),
+            'group' => $key1->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger1], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+
+        // test
+        $this->store->triggeredJobComplete($fireTriggers[0], new JobDetail(), CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_COMPLETE);
+
+        $this->assertSame(Trigger::STATE_COMPLETE, $this->store->retrieveTrigger($key1)->getState());
+        $this->assertSame(Trigger::STATE_COMPLETE, $this->store->retrieveTrigger($key2)->getState());
+        $this->assertNotEmpty($fireTriggers[0]->getFireInstanceId());
+        $this->assertNull($this->store->retrieveFireTrigger($fireTriggers[0]->getFireInstanceId()));
+    }
+
+    public function testOnTriggerJobCompleteShouldSetAllJobTriggersStateErrorAndDeleteFiredTrigger()
+    {
+        $key1 = new Key('name1', 'group');
+        $key2 = new Key('name2', 'group');
+        $jobKey = new Key('job-name', 'group');
+
+        $startTime = new \DateTime();
+
+        $trigger1 = new SimpleTrigger();
+        $trigger1->setKey($key1);
+        $trigger1->setJobKey(clone $jobKey);
+        $trigger1->setRepeatInterval(10);
+        $trigger1->setRepeatCount(0);
+        $trigger1->setStartTime($startTime);
+        $trigger1->setNextFireTime($startTime);
+
+        $trigger2 = new SimpleTrigger();
+        $trigger2->setKey($key2);
+        $trigger2->setJobKey(clone $jobKey);
+
+        $this->store->storeTrigger($trigger1);
+        $this->store->storeTrigger($trigger2);
+
+        // force acquired state
+        $this->res->getTriggerStorage()->getCollection()->updateOne([
+            'name' => $key1->getName(),
+            'group' => $key1->getGroup(),
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_ACQUIRED,
+            ]
+        ]);
+
+        $fireTriggers = $this->store->triggersFired([$trigger1], time() + 100);
+
+        $this->assertCount(1, $fireTriggers);
+
+        // test
+        $fireTriggers[0]->setErrorMessage('the error message');
+        $this->store->triggeredJobComplete($fireTriggers[0], new JobDetail(), CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
+
+
+        $trigger1 = $this->store->retrieveTrigger($key1);
+        $this->assertSame(Trigger::STATE_ERROR, $trigger1->getState());
+        $this->assertSame('the error message', $trigger1->getErrorMessage());
+
+        $trigger2 = $this->store->retrieveTrigger($key2);
+        $this->assertSame(Trigger::STATE_ERROR, $trigger2->getState());
+        $this->assertSame('the error message', $trigger2->getErrorMessage());
+
+        $this->assertNotEmpty($fireTriggers[0]->getFireInstanceId());
+        $this->assertNull($this->store->retrieveFireTrigger($fireTriggers[0]->getFireInstanceId()));
     }
 }

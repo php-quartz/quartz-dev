@@ -222,7 +222,7 @@ class YadmStore implements JobStore
         $shouldBePaused = $this->isTriggerGroupPaused($triggerKey->getGroup());
 
         if (false == $shouldBePaused) {
-            $shouldBePaused  = $this->isTriggerGroupPaused(self::ALL_GROUPS_PAUSED);
+            $shouldBePaused = $this->isTriggerGroupPaused(self::ALL_GROUPS_PAUSED);
 
             if ($shouldBePaused) {
                 $this->insertPausedTriggerGroup($triggerKey->getGroup());
@@ -540,7 +540,7 @@ class YadmStore implements JobStore
      */
     public function pauseJob(Key $jobKey)
     {
-        $this->executeInLock(self::ALL_GROUPS_PAUSED, function () use ($jobKey) {
+        $this->executeInLock(self::LOCK_TRIGGER_ACCESS, function () use ($jobKey) {
             $this->doPauseJob($jobKey);
         });
     }
@@ -960,10 +960,12 @@ class YadmStore implements JobStore
     public function doTriggerFired(Trigger $trigger, $noLaterThan)
     {
         // Make sure trigger wasn't deleted, paused, or completed...
-        if ($trigger = $this->retrieveTrigger($trigger->getKey())) {
-            if ($trigger->getState() !== Trigger::STATE_ACQUIRED) {
-                return [];
-            }
+        if (false == $trigger = $this->retrieveTrigger($trigger->getKey())) {
+            return[];
+        }
+
+        if ($trigger->getState() !== Trigger::STATE_ACQUIRED) {
+            return [];
         }
 
         $cal = null;
