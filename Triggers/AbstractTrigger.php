@@ -132,7 +132,7 @@ abstract class AbstractTrigger implements Trigger
      */
     public function getJobDataMap()
     {
-        return $this->getValue('jobDataMap');
+        return $this->getValue('jobDataMap', []);
     }
 
     /**
@@ -342,6 +342,22 @@ abstract class AbstractTrigger implements Trigger
     public function getMisfireInstruction()
     {
         return $this->getValue('misfireInstruction');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setErrorMessage($message)
+    {
+        $this->setValue('errorMessage', $message);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getErrorMessage()
+    {
+        return $this->getValue('errorMessage');
     }
 
     /**

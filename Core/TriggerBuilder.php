@@ -386,7 +386,7 @@ class TriggerBuilder
             throw new \InvalidArgumentException('dataKey must be a string');
         }
 
-        if (false == is_scalar($value) || false == is_array($value)) {
+        if (false == (is_scalar($value) || is_array($value))) {
             throw new \InvalidArgumentException('value must be an array or scalar');
         }
 

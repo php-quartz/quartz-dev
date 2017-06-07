@@ -12,6 +12,7 @@ use Quartz\Core\JobDetail;
 use Quartz\Core\JobPersistenceException;
 use Quartz\Core\JobStore;
 use Quartz\Core\Key;
+use Quartz\Core\Scheduler;
 use Quartz\Core\Trigger;
 use Ramsey\Uuid\Uuid;
 
@@ -26,6 +27,11 @@ class YadmStore implements JobStore
     private $res;
 
     /**
+     * @var Scheduler
+     */
+    private $scheduler;
+
+    /**
      * @var int
      */
     private $misfireThreshold = 60; // one minute
@@ -36,6 +42,14 @@ class YadmStore implements JobStore
     public function __construct(YadmStoreResource $res)
     {
         $this->res = $res;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function initialize(Scheduler $scheduler)
+    {
+        $this->scheduler = $scheduler;
     }
 
     /**
@@ -621,12 +635,14 @@ class YadmStore implements JobStore
             $calendar = $this->retrieveCalendar($trig->getCalendarName());
         }
 
-        // schedSignaler.notifyTriggerListenersMisfired(trig);
+        $this->scheduler->notifyTriggerListenersMisfired($trig);
 
         $trig->updateAfterMisfire($calendar);
 
         if (null == $trig->getNextFireTime()) {
             $this->doStoreTrigger($trig, true, Trigger::STATE_COMPLETE);
+
+            $this->scheduler->notifySchedulerListenersFinalized($trig);
         } else {
             $this->doStoreTrigger($trig, true, $newStateIfNotComplete);
         }
@@ -963,6 +979,7 @@ class YadmStore implements JobStore
 
         // update misfired trigger
         if (((int) $trigger->getNextFireTime()->format('U')) < $misfireTime) {
+            $this->scheduler->notifyTriggerListenersMisfired($trigger);
             $trigger->updateAfterMisfire($cal);
         }
 
@@ -987,6 +1004,10 @@ class YadmStore implements JobStore
         }
 
         $this->doStoreTrigger($trigger, true, $state);
+
+        if ($trigger->getState() === Trigger::STATE_COMPLETE) {
+            $this->scheduler->notifySchedulerListenersFinalized($trigger);
+        }
 
         foreach ($firedTriggers as $firedTrigger) {
             $this->res->getFiredTriggerStorage()->insert($firedTrigger);
@@ -1033,6 +1054,7 @@ class YadmStore implements JobStore
             ], [
                 '$set' => [
                     'state' => Trigger::STATE_ERROR,
+                    'errorMessage' => $trigger->getErrorMessage(),
                 ]
             ]);
         } elseif ($triggerInstCode === CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_COMPLETE) {
@@ -1051,11 +1073,13 @@ class YadmStore implements JobStore
             ], [
                 '$set' => [
                     'state' => Trigger::STATE_ERROR,
+                    'errorMessage' => $trigger->getErrorMessage(),
                 ]
             ]);
         }
 
         // remove fired triggers
+        // TODO: update fired trigger but not remove
         $result = $this->res->getFiredTriggerStorage()->getCollection()->deleteOne([
             'fireInstanceId' => $trigger->getFireInstanceId(),
         ]);
@@ -1118,5 +1142,46 @@ class YadmStore implements JobStore
     public function isTriggerGroupPaused($groupName)
     {
         return (bool) $this->res->getPausedTriggerCol()->count(['groupName' => $groupName]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schedulerStarted()
+    {
+        $this->res->getManagementLock()->unlockAll();
+
+        // recover failed and acquired trigger
+        $this->res->getTriggerStorage()->getCollection()->updateMany([
+            'state' => [
+                '$in' => [Trigger::STATE_ACQUIRED, Trigger::STATE_ERROR],
+            ]
+        ], [
+            '$set' => [
+                'state' => Trigger::STATE_WAITING,
+            ]
+        ]);
+
+        // clear fired triggers
+        $this->res->getFiredTriggerStorage()->getCollection()->deleteMany([]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function retrieveFireTrigger($fireInstanceId)
+    {
+        return $this->res->getFiredTriggerStorage()->findOne([
+            'fireInstanceId' => $fireInstanceId,
+        ]);
+    }
+
+    /**
+     * TODO: is not part of interface
+     */
+    public function createIndexes()
+    {
+        $this->res->dropIndexes();
+        $this->res->createIndexes();
     }
 }

@@ -1,0 +1,63 @@
+version: '3'
+services:
+  scheduler:
+    image: 'formapro/nginx-php-fpm:latest-all-exts'
+    working_dir: '/app/App'
+#    entrypoint: 'php bin/quartz.php scheduler --setup -vvv'
+    restart: 'on-failure'
+    depends_on:
+      - 'mongo'
+      - 'rabbitmq'
+    volumes:
+      - './:/app:cached'
+#      - './docker/xdebug.ini:/etc/php/7.0/mods-available/xdebug.ini'
+    environment:
+      PHP_IDE_CONFIG: 'serverName=quartz.dev'
+      XDEBUG_CONFIG: 'idekey=PHPSTORM'
+      MONGODB_HOST: 'mongo'
+      MONGODB_PORT: '27017'
+      MONGODB_DB: 'quartz'
+      RABBITMQ_HOST: 'rabbitmq'
+      RABBITMQ_PORT: '5672'
+      RABBITMQ_USER: 'guest'
+      RABBITMQ_PASS: 'guest'
+      RABBITMQ_VHOST: 'quartz'
+
+  job-run-shell:
+    image: 'formapro/nginx-php-fpm:latest-all-exts'
+    working_dir: '/app/App'
+#    entrypoint: 'php bin/quartz.php job-run-shell -vvv'
+    restart: 'on-failure'
+    depends_on:
+      - 'mongo'
+      - 'rabbitmq'
+    volumes:
+      - './:/app:cached'
+#      - './docker/xdebug.ini:/etc/php/7.0/mods-available/xdebug.ini'
+    environment:
+      PHP_IDE_CONFIG: 'serverName=quartz.dev'
+      XDEBUG_CONFIG: 'idekey=PHPSTORM'
+      MONGODB_HOST: 'mongo'
+      MONGODB_PORT: '27017'
+      MONGODB_DB: 'quartz'
+      RABBITMQ_HOST: 'rabbitmq'
+      RABBITMQ_PORT: '5672'
+      RABBITMQ_USER: 'guest'
+      RABBITMQ_PASS: 'guest'
+      RABBITMQ_VHOST: 'quartz'
+
+  mongo:
+    image: 'mongo:3'
+    restart: 'no'
+    ports:
+      - '27017:27017'
+
+  rabbitmq:
+    image: 'enqueue/rabbitmq:latest'
+    restart: 'no'
+    ports:
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: 'guest'
+      RABBITMQ_DEFAULT_PASS: 'guest'
+      RABBITMQ_DEFAULT_VHOST: 'quartz'

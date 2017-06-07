@@ -48,14 +48,6 @@ class JobDetail implements BaseJobDetail
     /**
      * {@inheritdoc}
      */
-    public function getJobDataMap()
-    {
-        return $this->getValue('jobDataMap');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function isDurable()
     {
         return (bool) $this->getValue('durable');
@@ -67,6 +59,30 @@ class JobDetail implements BaseJobDetail
     public function setDurable($durable)
     {
         $this->setValue('durable', (bool) $durable);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJobClass()
+    {
+        return $this->getValue('jobClass');
+    }
+
+    /**
+     * @param string $class
+     */
+    public function setJobClass($class)
+    {
+        $this->setValue('jobClass', $class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJobDataMap()
+    {
+        return $this->getValue('jobDataMap', []);
     }
 
     /**

@@ -14,7 +14,7 @@ services:
       XDEBUG_CONFIG: 'idekey=PHPSTORM'
       MONGODB_HOST: 'mongo'
       MONGODB_PORT: '27017'
-      MONGODB_DB: 'quatrz'
+      MONGODB_DB: 'quartz'
 
   mongo:
     image: 'mongo:3'

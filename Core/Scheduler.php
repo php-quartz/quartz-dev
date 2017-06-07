@@ -4,6 +4,7 @@ namespace Quartz\Core;
 use Quartz\Events\Event;
 use Quartz\Events\GroupsEvent;
 use Quartz\Events\JobDetailEvent;
+use Quartz\Events\JobExecutionContextEvent;
 use Quartz\Events\KeyEvent;
 use Quartz\Events\TriggerEvent;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -45,19 +46,26 @@ class Scheduler
      */
     private $timeWindow;
 
-    public function __construct(JobStore $store, JobRunShellFactory $jobRunShellFactory, JobFactory $jobFactory)
+    public function __construct(JobStore $store, JobRunShellFactory $jobRunShellFactory, JobFactory $jobFactory, EventDispatcher $eventDispatcher)
     {
         $this->store = $store;
         $this->jobRunShellFactory = $jobRunShellFactory;
         $this->jobFactory = $jobFactory;
+        $this->eventDispatcher = $eventDispatcher;
 
         $this->maxCount = 10;
         $this->sleepTime = 5;
         $this->timeWindow = 30;
+
+        $store->initialize($this);
     }
 
     public function start()
     {
+        $this->notifySchedulerListenersStarting();
+        $this->store->schedulerStarted();
+        $this->notifySchedulerListenersStarted();
+
         while (true) {
             $execStart = time();
             if ($triggers = $this->store->acquireNextTriggers($execStart + $this->timeWindow, $this->maxCount, 0)) {
@@ -87,6 +95,22 @@ class Scheduler
     }
 
     /**
+     * @return EventDispatcher
+     */
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
+    }
+
+    /**
+     * @return JobStore
+     */
+    public function getStore()
+    {
+        return $this->store;
+    }
+
+    /**
      * @param Trigger   $trigger
      * @param JobDetail $detail
      * @param string    $instructionCode
@@ -94,6 +118,58 @@ class Scheduler
     public function notifyJobStoreJobComplete(Trigger $trigger, JobDetail $detail = null, $instructionCode)
     {
         $this->store->triggeredJobComplete($trigger, $detail, $instructionCode);
+    }
+
+    /**
+     * @param JobExecutionContext $context
+     *
+     * @return bool vetoed
+     */
+    public function notifyTriggerListenersFired(JobExecutionContext $context)
+    {
+        $this->notify(Event::TRIGGER_FIRED, $event = new JobExecutionContextEvent($context));
+
+        return $event->isVetoed();
+    }
+
+    public function notifyTriggerListenersComplete(JobExecutionContext $context)
+    {
+        $this->notify(Event::TRIGGER_COMPLETE, new JobExecutionContextEvent($context));
+    }
+
+    public function notifyJobListenersWasVetoed(JobExecutionContext $context)
+    {
+        $this->notify(Event::JOB_EXECUTION_VETOED, new JobExecutionContextEvent($context));
+    }
+
+    public function notifyJobListenersToBeExecuted(JobExecutionContext $context)
+    {
+        $this->notify(Event::JOB_TO_BE_EXECUTED, new JobExecutionContextEvent($context));
+    }
+
+    public function notifyJobListenersWasExecuted(JobExecutionContext $context)
+    {
+        $this->notify(Event::JOB_WAS_EXECUTED, new JobExecutionContextEvent($context));
+    }
+
+    public function notifySchedulerListenersFinalized(Trigger $trigger)
+    {
+        $this->notify(Event::TRIGGER_FINALIZED, new TriggerEvent($trigger));
+    }
+
+    public function notifyTriggerListenersMisfired(Trigger $trigger)
+    {
+        $this->notify(Event::TRIGGER_MISFIRED, new TriggerEvent($trigger));
+    }
+
+    public function notifySchedulerListenersStarted()
+    {
+        $this->notify(Event::SCHEDULER_STARTED, new Event());
+    }
+
+    public function notifySchedulerListenersStarting()
+    {
+        $this->notify(Event::SCHEDULER_STARTING, new Event());
     }
 
     ///////////////////////////////////////////////////////////////////////////

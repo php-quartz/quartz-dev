@@ -1,11 +1,21 @@
 <?php
 namespace Quartz\Core;
 
-
 use Quartz\Store\ObjectAlreadyExistsException;
 
 interface JobStore
 {
+    /**
+     * @param Scheduler $scheduler
+     */
+    public function initialize(Scheduler $scheduler);
+
+    /**
+     * Called by the Scheduler to inform the <code>JobStore</code> that
+     * the scheduler has started.
+     */
+    public function schedulerStarted();
+
     /////////////////////////////////////////////////////////////////////////////
     //
     // Job & Trigger Storage methods
@@ -471,4 +481,6 @@ interface JobStore
      * is stateful.
      */
     public function triggeredJobComplete(Trigger $trigger, JobDetail $jobDetail, $triggerInstCode);
+
+    public function retrieveFireTrigger($fireInstanceId);
 }

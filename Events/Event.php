@@ -95,34 +95,116 @@ class Event extends BaseEvent
      */
     const TRIGGERS_RESUMED = 'triggers_resumed';
 
-//public interface SchedulerSignaler {
-//
-//    /*
-//     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//     *
-//     * Interface.
-//     *
-//     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//     */
-//
-//     void notifyTriggerListenersMisfired(Trigger trigger);
-//
-//     void notifySchedulerListenersFinalized(Trigger trigger);
-//
-//     void notifySchedulerListenersJobDeleted(JobKey jobKey);
-//
-//     void signalSchedulingChange(long candidateNewNextFireTime);
-//
-//     void notifySchedulerListenersError(String string, SchedulerException jpe);
-//}
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link Trigger}</code>
+     * has fired, and it's associated <code>{@link org.quartz.JobDetail}</code>
+     * is about to be executed.
+     * </p>
+     *
+     * <p>
+     * It is called before the <code>vetoJobExecution(..)</code> method of this
+     * interface.
+     * </p>
+     *
+     * @param JobExecutionContext $context
+     */
+    const TRIGGER_FIRED = 'trigger_fired';
 
-//    /**
-//     * <p>
-//     * Called by the <code>{@link Scheduler}</code> when a <code>{@link Trigger}</code>
-//     * has reached the condition in which it will never fire again.
-//     * </p>
-//     */
-//    void triggerFinalized(Trigger trigger);
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link Trigger}</code>
+     * has reached the condition in which it will never fire again.
+     * </p>
+     *
+     * @param Trigger
+     */
+    const TRIGGER_FINALIZED = 'trigger_finalized';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link Trigger}</code>
+     * has fired, it's associated <code>{@link org.quartz.JobDetail}</code>
+     * has been executed, and it's <code>triggered(xx)</code> method has been
+     * called.
+     * </p>
+     *
+     */
+    const TRIGGER_COMPLETE = 'trigger_complete';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link Trigger}</code>
+     * has misfired.
+     * </p>
+     *
+     * <p>
+     * Consideration should be given to how much time is spent in this method,
+     * as it will affect all triggers that are misfiring.  If you have lots
+     * of triggers misfiring at once, it could be an issue it this method
+     * does a lot.
+     * </p>
+     *
+     * @param Trigger
+     */
+    const TRIGGER_MISFIRED = 'trigger_misfired';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link org.quartz.JobDetail}</code>
+     * was about to be executed (an associated <code>{@link Trigger}</code>
+     * has occurred), but a <code>{@link TriggerListener}</code> vetoed it's
+     * execution.
+     * </p>
+     *
+     * @param JobExecutionContext $context
+     */
+    const JOB_EXECUTION_VETOED = 'job_execution_vetoed';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a <code>{@link org.quartz.JobDetail}</code>
+     * is about to be executed (an associated <code>{@link Trigger}</code>
+     * has occurred).
+     * </p>
+     *
+     * <p>
+     * This method will not be invoked if the execution of the Job was vetoed
+     * by a <code>{@link TriggerListener}</code>.
+     * </p>
+     *
+     * @param JobExecutionContext
+     */
+    const JOB_TO_BE_EXECUTED = 'job_to_be_executed';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> after a <code>{@link org.quartz.JobDetail}</code>
+     * has been executed, and be for the associated <code>Trigger</code>'s
+     * <code>triggered(xx)</code> method has been called.
+     * </p>
+     *
+     * @param JobExecutionContext
+     */
+    const JOB_WAS_EXECUTED = 'job_was_executed';
+
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> to inform the listener
+     * that it has started.
+     * </p>
+     */
+    const SCHEDULER_STARTED = 'scheduler_started';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> to inform the listener
+     * that it is starting.
+     * </p>
+     */
+    const SCHEDULER_STARTING = 'scheduler_starting';
+
 //
 //    /**
 //     * <p>
@@ -165,23 +247,6 @@ class Event extends BaseEvent
 //     * </p>
 //     */
 //    void schedulerInStandbyMode();
-//
-//    /**
-//     * <p>
-//     * Called by the <code>{@link Scheduler}</code> to inform the listener
-//     * that it has started.
-//     * </p>
-//     */
-//    void schedulerStarted();
-//
-//    /**
-//     * <p>
-//     * Called by the <code>{@link Scheduler}</code> to inform the listener
-//     * that it is starting.
-//     * </p>
-//     */
-//    void schedulerStarting();
-//
 //    /**
 //     * <p>
 //     * Called by the <code>{@link Scheduler}</code> to inform the listener

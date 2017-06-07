@@ -422,6 +422,16 @@ interface Trigger
      */
     public function executionComplete(JobExecutionContext $context);
 
+    /**
+     * @param string $message
+     */
+    public function setErrorMessage($message);
+
+    /**
+     * @return string
+     */
+    public function getErrorMessage();
+
     # TriggerFiredBundle interface
 
     /**

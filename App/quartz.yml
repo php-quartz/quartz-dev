@@ -1,0 +1,13 @@
+enqueue:
+  transport:
+    default: 'rabbitmq_amqp'
+    rabbitmq_amqp:
+      host: 'rabbitmq'
+      port: 5672
+      user: 'guest'
+      pass: 'guest'
+      vhost: 'quartz'
+
+store:
+  uri: 'mongodb://mongo:27017'
+

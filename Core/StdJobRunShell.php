@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Core;
 
-class SyncJobRunShell implements JobRunShell
+class StdJobRunShell implements JobRunShell
 {
     /**
      * @var Scheduler
@@ -22,7 +22,7 @@ class SyncJobRunShell implements JobRunShell
     public function execute(Trigger $trigger)
     {
         if (false == $jobDetail = $this->scheduler->getJobDetail($trigger->getJobKey())) {
-            // @todo set error description into trigger
+            $trigger->setErrorMessage(sprintf('Job was not found with key: "%s"', (string) $trigger->getJobKey()));
             $this->scheduler->notifyJobStoreJobComplete($trigger, null, CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
 
             return;
@@ -31,7 +31,7 @@ class SyncJobRunShell implements JobRunShell
         $calendar = null;
         if ($trigger->getCalendarName()) {
             if (false == $calendar = $this->scheduler->getCalendar($trigger->getCalendarName())) {
-                // @todo set error description into trigger
+                $trigger->setErrorMessage(sprintf('Calendar was not found with name: "%s"', (string) $trigger->getCalendarName()));
                 $this->scheduler->notifyJobStoreJobComplete($trigger, $jobDetail, CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
 
                 return;
@@ -41,7 +41,7 @@ class SyncJobRunShell implements JobRunShell
         try {
             $job = $this->scheduler->getJobFactory()->newJob($jobDetail);
         } catch (\Exception $e) {
-            // @todo set error description into trigger
+            $trigger->setErrorMessage(sprintf('Job instance was not created: "%s"', (string) $jobDetail->getKey()));
             $this->scheduler->notifyJobStoreJobComplete($trigger, $jobDetail, CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR);
 
             return;
@@ -57,8 +57,7 @@ class SyncJobRunShell implements JobRunShell
             $sleepTime = $scheduledFireTime - $now;
 
             if ($sleepTime > 120) { // 2 min
-//                throw new SchedulerException(sprintf('Sleep time is too long. "%d"', $sleepTime));
-                // @todo set error description
+                $trigger->setErrorMessage(sprintf('Sleep time is too long. "%d"', $sleepTime));
                 $this->scheduler->notifyJobStoreJobComplete($trigger, $jobDetail, CompletedExecutionInstruction::NOOP);
             }
 
@@ -67,6 +66,22 @@ class SyncJobRunShell implements JobRunShell
 
         $startTime = microtime(true);
         while (true) {
+            if ($this->scheduler->notifyTriggerListenersFired($context)) {
+                // trigger vetoed
+                $this->scheduler->notifyJobListenersWasVetoed($context);
+
+                $instructionCode = $trigger->executionComplete($context);
+                $this->scheduler->notifyJobStoreJobComplete($trigger, $jobDetail, $instructionCode);
+
+                if (null == $trigger->getNextFireTime()) {
+                    $this->scheduler->notifySchedulerListenersFinalized($trigger);
+                }
+
+                break;
+            }
+
+            $this->scheduler->notifyJobListenersToBeExecuted($context);
+
             try {
                 $job->execute($context);
             } catch (\Exception $e) {
@@ -78,7 +93,11 @@ class SyncJobRunShell implements JobRunShell
             $endTime = microtime(true);
             $context->setJobRunTime(($endTime - $startTime) * 1000);
 
+            $this->scheduler->notifyJobListenersWasExecuted($context);
+
             $instructionCode = $trigger->executionComplete($context);
+
+            $this->scheduler->notifyTriggerListenersComplete($context);
 
             if ($instructionCode === CompletedExecutionInstruction::RE_EXECUTE_JOB) {
                 $context->incrementRefireCount();

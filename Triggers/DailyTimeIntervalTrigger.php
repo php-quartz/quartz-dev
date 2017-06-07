@@ -460,6 +460,11 @@ class DailyTimeIntervalTrigger extends AbstractTrigger
 
     /**
      * Return a date with date from $date object and time from $time object
+     *
+     * @param \DateTime $date
+     * @param \DateTime $time
+     *
+     * @return \DateTime
      */
     public function getTimeOfDayForDate(\DateTime $date, \DateTime $time)
     {

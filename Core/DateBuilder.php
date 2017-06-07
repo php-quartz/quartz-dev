@@ -56,7 +56,7 @@ class DateBuilder
     public static function validateDayOfWeek($dayOfWeek)
     {
         if ($dayOfWeek < self::MONDAY || $dayOfWeek > self::SUNDAY) {
-            throw new \InvalidArgumentException('Invalid day of week.');
+            throw new \InvalidArgumentException(sprintf('Invalid day of week: "%s"', $dayOfWeek));
         }
     }
 

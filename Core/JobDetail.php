@@ -45,6 +45,15 @@ interface JobDetail
 
     /**
      * <p>
+     * Get the instance of <code>Job</code> that will be executed.
+     * </p>
+     *
+     * @return string
+     */
+    public function getJobClass();
+
+    /**
+     * <p>
      * Get the <code>JobDataMap</code> that is associated with the <code>Job</code>.
      * </p>
      *

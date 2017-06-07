@@ -100,9 +100,6 @@ class JobBuilder
         $job = new JobDetail();
 
 //        $job->setJobClass($this->jobClass);
-        if ($this->jobClass) {
-            $job->setValue('jobClass', $this->jobClass);
-        }
 
         if(null == $this->key) {
             $this->key = new Key(Key::createUniqueName(null), null);
@@ -112,6 +109,7 @@ class JobBuilder
         $job->setDescription($this->description);
         $job->setDurable($this->durability);
 //        $job->setRequestsRecovery($this->shouldRecover);
+        $job->setJobClass($this->jobClass);
         $job->setJobDataMap($this->jobDataMap);
 
         return $job;

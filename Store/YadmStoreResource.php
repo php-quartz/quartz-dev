@@ -180,7 +180,7 @@ class YadmStoreResource
         return $this->pausedTriggerCol;
     }
 
-    public function createIndexes()
+    public function dropIndexes()
     {
         try {
             $this->getTriggerStorage()->getCollection()->dropIndexes();
@@ -190,18 +190,21 @@ class YadmStoreResource
             $this->getFiredTriggerStorage()->getCollection()->dropIndexes();
         } catch (RuntimeException $e) {
         }
+    }
 
+    public function createIndexes()
+    {
         $this->getManagementLock()->createIndexes();
 
         $this->getTriggerStorage()->getCollection()->createIndexes([
             [
-                'key' => ['key' => 1, 'group' => 1], 'unique' => true,
+                'key' => ['name' => 1, 'group' => 1], 'unique' => true,
             ],
             [
                 'key' => ['group' => 1],
             ],
             [
-                'key' => ['jobKey' => 1, 'jobGroup' => 1],
+                'key' => ['jobName' => 1, 'jobGroup' => 1],
             ],
             [
                 'key' => ['jobGroup' => 1],
@@ -219,7 +222,7 @@ class YadmStoreResource
 
         $this->getJobStorage()->getCollection()->createIndexes([
             [
-                'key' => ['key' => 1, 'group' => 1], 'unique' => true,
+                'key' => ['name' => 1, 'group' => 1], 'unique' => true,
             ],
             [
                 'key' => ['group' => 1],
