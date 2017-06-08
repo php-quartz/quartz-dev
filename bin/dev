@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -x
+set -e
+
+while getopts "busdtef" OPTION; do
+  case $OPTION in
+    b)
+      COMPOSE_PROJECT_NAME=quartz docker-compose build
+      ;;
+    u)
+      COMPOSE_PROJECT_NAME=quartz docker-compose up
+      ;;
+    s)
+      COMPOSE_PROJECT_NAME=quartz docker-compose stop
+      ;;
+    d)
+      COMPOSE_PROJECT_NAME=quartz docker-compose down
+      ;;
+    e)
+      docker exec -it quartz_app_1 /bin/bash
+      ;;
+    f)
+      ./bin/php-cs-fixer fix
+      ;;
+    t)
+      COMPOSE_PROJECT_NAME=quartz docker-compose run --workdir="/app" --rm app ./bin/test "$2"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done

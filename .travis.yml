@@ -1,0 +1,42 @@
+git:
+    depth: 10
+
+language: php
+
+env:
+  DOCKER_VERSION: '17.05.0~ce-0~ubuntu-trusty'
+  DOCKER_COMPOSE_VERSION: '1.13.0'
+
+matrix:
+  include:
+    - php: 7.0
+      sudo: required
+      services: docker
+
+cache:
+    directories:
+        - $HOME/.composer/cache
+
+install:
+    - sudo apt-get update
+    # list docker-engine versions
+    - apt-cache madison docker-engine
+    # upgrade docker-engine to specific version
+    - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}
+
+    # reinstall docker-compose at specific version
+    - sudo rm -f /usr/local/bin/docker-compose
+    - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+    - chmod +x docker-compose
+    - sudo mv docker-compose /usr/local/bin
+
+    - docker --version
+    - docker-compose --version
+
+    - rm $HOME/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini;
+    - echo "memory_limit=2048M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+    - composer install --ignore-platform-reqs
+    - bin/dev -b
+
+script:
+    - bin/dev -t
