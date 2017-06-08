@@ -14,10 +14,7 @@ use Quartz\Core\Trigger;
 abstract class AbstractTrigger implements Trigger
 {
     use CastTrait;
-    use ValuesTrait {
-        setValue as public;
-        getValue as public;
-    }
+    use ValuesTrait;
 
     /**
      * @var Key
@@ -167,7 +164,6 @@ abstract class AbstractTrigger implements Trigger
         return $this->getValue('startTime', null, \DateTime::class);
     }
 
-
     /**
      * {@inheritdoc}
      */
@@ -252,7 +248,6 @@ abstract class AbstractTrigger implements Trigger
         $this->setValue('state', $state);
     }
 
-
     /**
      * @return int
      */
@@ -315,6 +310,9 @@ abstract class AbstractTrigger implements Trigger
         $this->setValue('fireTime', $time);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getFireTime()
     {
         return $this->getValue('fireTime', null, \DateTime::class);
@@ -347,6 +345,18 @@ abstract class AbstractTrigger implements Trigger
     /**
      * {@inheritdoc}
      */
+    public function setMisfireInstruction($misfireInstruction)
+    {
+        if (false == $this->validateMisfireInstruction($misfireInstruction)) {
+            throw new \InvalidArgumentException('The misfire instruction code is invalid for this type of trigger.');
+        }
+
+        $this->setValue('misfireInstruction', $misfireInstruction);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function setErrorMessage($message)
     {
         $this->setValue('errorMessage', $message);
@@ -358,18 +368,6 @@ abstract class AbstractTrigger implements Trigger
     public function getErrorMessage()
     {
         return $this->getValue('errorMessage');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setMisfireInstruction($misfireInstruction)
-    {
-        if (false == $this->validateMisfireInstruction($misfireInstruction)) {
-            throw new \InvalidArgumentException('The misfire instruction code is invalid for this type of trigger.');
-        }
-
-        $this->setValue('misfireInstruction', $misfireInstruction);
     }
 
     /**

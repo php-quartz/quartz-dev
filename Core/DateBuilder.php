@@ -84,7 +84,7 @@ class DateBuilder
     public static function validateDayOfMonth($day)
     {
         if ($day < 1 || $day > 31) {
-            throw new \InvalidArgumentException('Invalid day of month.');
+            throw new \InvalidArgumentException('Invalid day of month (must be >= 1 and <= 31).');
         }
     }
 

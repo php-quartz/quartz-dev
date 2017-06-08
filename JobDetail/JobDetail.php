@@ -7,17 +7,23 @@ use Quartz\Core\Key;
 
 class JobDetail implements BaseJobDetail
 {
-    use ValuesTrait {
-        getValue as public;
-        setValue as public;
-    }
+    use ValuesTrait;
+
+    /**
+     * @var Key
+     */
+    private $key;
 
     /**
      * {@inheritdoc}
      */
     public function getKey()
     {
-        return new Key($this->getValue('name'), $this->getValue('group'));
+        if ($this->key) {
+            $this->key = new Key($this->getValue('name'), $this->getValue('group'));
+        }
+
+        return $this->key;
     }
 
     /**
@@ -25,6 +31,8 @@ class JobDetail implements BaseJobDetail
      */
     public function setKey(Key $key)
     {
+        $this->key = $key;
+
         $this->setValue('name', $key->getName());
         $this->setValue('group', $key->getGroup());
     }
@@ -94,6 +102,8 @@ class JobDetail implements BaseJobDetail
     }
 
     /**
+     * TODO: is not implemented :(
+     *
      * {@inheritdoc}
      */
     public function requestsRecovery()
