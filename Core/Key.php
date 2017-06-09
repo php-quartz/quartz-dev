@@ -1,25 +1,19 @@
 <?php
 namespace Quartz\Core;
 
+use Makasim\Values\ValuesTrait;
 use Ramsey\Uuid\Uuid;
 
 class Key
 {
+    use ValuesTrait;
+
+    const INSTANCE = 'key';
+
     const DEFAULT_GROUP = 'DEFAULT';
     const GROUP_NS = '5f8ad9bf-247b-43bc-8ef5-886e701bd744';
 
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $group;
-
-    /**
-     *
      * @param string $name
      * @param string $group
      */
@@ -29,8 +23,18 @@ class Key
             throw new \InvalidArgumentException('Name cannot be empty');
         }
 
-        $this->name = $name;
-        $this->group = empty($group) ? self::DEFAULT_GROUP : $group;
+        $this->setInstance(self::INSTANCE);
+
+        $this->setName($name);
+        $this->setGroup(empty($group) ? self::DEFAULT_GROUP : $group);
+    }
+
+    /**
+     * @param string $instance
+     */
+    protected function setInstance($instance)
+    {
+        $this->setValue('instance', $instance);
     }
 
     /**
@@ -38,7 +42,15 @@ class Key
      */
     public function getName()
     {
-        return $this->name;
+        return $this->getValue('name');
+    }
+
+    /**
+     * @param string $name
+     */
+    private function setName($name)
+    {
+        $this->setValue('name', $name);
     }
 
     /**
@@ -46,7 +58,15 @@ class Key
      */
     public function getGroup()
     {
-        return $this->group;
+        return $this->getValue('group');
+    }
+
+    /**
+     * @param string $group
+     */
+    private function setGroup($group)
+    {
+        $this->setValue('group', $group);
     }
 
     /**

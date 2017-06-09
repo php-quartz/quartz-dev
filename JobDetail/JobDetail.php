@@ -9,10 +9,25 @@ class JobDetail implements BaseJobDetail
 {
     use ValuesTrait;
 
+    const INSTANCE = 'job-detail';
+
     /**
      * @var Key
      */
     private $key;
+
+    public function __construct()
+    {
+        $this->setInstance(self::INSTANCE);
+    }
+
+    /**
+     * @param string $instance
+     */
+    protected function setInstance($instance)
+    {
+        $this->setValue('instance', $instance);
+    }
 
     /**
      * {@inheritdoc}

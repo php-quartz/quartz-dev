@@ -5,12 +5,12 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Makasim\Values\ObjectsTrait;
 use Makasim\Values\ValuesTrait;
 use Quartz\Core\Calendar;
+use Quartz\ModelClassFactory;
 
 abstract class BaseCalendar implements Calendar
 {
     use ValuesTrait;
     use ObjectsTrait;
-    use CalendarClassFactoryTrait;
 
     public function __construct($instance, Calendar $baseCalendar = null)
     {
@@ -40,7 +40,7 @@ abstract class BaseCalendar implements Calendar
     public function getBaseCalendar()
     {
         return $this->getObject('baseCalendar', function ($values) {
-            return $this->getCalendarClass($values);
+            return ModelClassFactory::getClass($values);
         });
     }
 

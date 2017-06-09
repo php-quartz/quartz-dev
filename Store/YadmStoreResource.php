@@ -7,15 +7,11 @@ use Makasim\Yadm\Storage;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Driver\Exception\RuntimeException;
-use Quartz\Calendar\CalendarClassFactoryTrait;
 use Quartz\JobDetail\JobDetail;
-use Quartz\Triggers\TriggerClassFactoryTrait;
+use Quartz\ModelClassFactory;
 
 class YadmStoreResource
 {
-    use CalendarClassFactoryTrait;
-    use TriggerClassFactoryTrait;
-
     /**
      * @var array
      */
@@ -115,7 +111,9 @@ class YadmStoreResource
     {
         if (false == $this->calendarStorage) {
             $collection = $this->getCollection($this->options['calendarCol']);
-            $hydrator = new Hydrator(function ($values){ return $this->getCalendarClass($values); });
+            $hydrator = new Hydrator(function($values) {
+                return ModelClassFactory::getClass($values);
+            });
 
             $this->calendarStorage = new Storage($collection, $hydrator);
         }
@@ -130,7 +128,9 @@ class YadmStoreResource
     {
         if (false == $this->triggerStorage) {
             $collection = $this->getCollection($this->options['triggerCol']);
-            $hydrator = new Hydrator(function ($values){ return $this->getTriggerClass($values); });
+            $hydrator = new Hydrator(function($values) {
+                return ModelClassFactory::getClass($values);
+            });
 
             $this->triggerStorage = new Storage($collection, $hydrator);
         }
@@ -145,7 +145,9 @@ class YadmStoreResource
     {
         if (false == $this->firedTriggerStorage) {
             $collection = $this->getCollection($this->options['firedTriggerCol']);
-            $hydrator = new Hydrator(function ($values){ return $this->getTriggerClass($values); });
+            $hydrator = new Hydrator(function($values) {
+                return ModelClassFactory::getClass($values);
+            });
 
             $this->firedTriggerStorage = new Storage($collection, $hydrator);
         }
