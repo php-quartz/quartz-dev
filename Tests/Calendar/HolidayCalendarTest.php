@@ -1,10 +1,11 @@
 <?php
 namespace Quartz\Tests\Calendar;
 
+use PHPUnit\Framework\TestCase;
 use Quartz\Calendar\HolidayCalendar;
 use Quartz\Core\Calendar;
 
-class HolidayCalendarTest extends \PHPUnit_Framework_TestCase
+class HolidayCalendarTest extends TestCase
 {
     public function testShouldImplementCalendarInterface()
     {

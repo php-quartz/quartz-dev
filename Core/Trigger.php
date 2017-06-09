@@ -1,8 +1,6 @@
 <?php
 namespace Quartz\Core;
 
-// base for -> SimpleTrigger, CronTrigger, DailyTimeIntervalTrigger, CalendarIntervalTrigger
-// incorporates Trigger, MutableTrigger, OperableTrigger and TriggerFiredBundle
 interface Trigger
 {
     const DEFAULT_PRIORITY = 5;

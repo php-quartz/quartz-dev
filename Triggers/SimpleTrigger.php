@@ -5,6 +5,13 @@ use Quartz\Core\Calendar;
 use Quartz\Core\DateBuilder;
 use Quartz\Core\SchedulerException;
 
+/**
+ * A <code>{@link Trigger}</code> that is used to fire a <code>Job</code>
+ * at a given moment in time, and optionally repeated at a specified interval.
+ *
+ * @see TriggerBuilder
+ * @see SimpleScheduleBuilder
+ */
 class SimpleTrigger extends AbstractTrigger
 {
     const INSTANCE = 'simple';
@@ -207,7 +214,7 @@ class SimpleTrigger extends AbstractTrigger
             return clone $startTime;
         }
 
-        $numberOfTimesExecuted = ((((int)$afterTime->format('U')) - ((int)$this->getStartTime()->format('U'))) / $this->getRepeatInterval()) + 1;
+        $numberOfTimesExecuted = (int) ((((int)$afterTime->format('U')) - ((int)$this->getStartTime()->format('U'))) / $this->getRepeatInterval()) + 1;
 
         if (($numberOfTimesExecuted > $this->getRepeatCount()) && ($this->getRepeatCount() != self::REPEAT_INDEFINITELY)) {
             return null;
