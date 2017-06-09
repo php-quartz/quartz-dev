@@ -39,7 +39,7 @@ class HolidayCalendar extends BaseCalendar
         $lookFor = \DateTime::createFromFormat('U', $timeStamp);
         $lookFor->setTime(0, 0, 0);
 
-        $dates = $this->getValue('dates');
+        $dates = $this->getValue('excludedDates');
 
         return false == isset($dates[$lookFor->format('U')]);
     }
@@ -71,8 +71,11 @@ class HolidayCalendar extends BaseCalendar
      * Add the given Date to the list of excluded days. Only the month, day and
      * year of the returned dates are significant.
      * </p>
+     *
+     * @param \DateTime $excludedDate
      */
-    public function addExcludedDate(\DateTime $excludedDate) {
+    public function addExcludedDate(\DateTime $excludedDate)
+    {
         $clone = clone $excludedDate;
         $clone->setTime(0, 0, 0);
 
@@ -85,7 +88,8 @@ class HolidayCalendar extends BaseCalendar
     /**
      * @param \DateTime $dateToRemove
      */
-    public function removeExcludedDate(\DateTime $dateToRemove) {
+    public function removeExcludedDate(\DateTime $dateToRemove)
+    {
         $clone = clone $dateToRemove;
         $clone->setTime(0, 0 ,0);
 
@@ -102,9 +106,10 @@ class HolidayCalendar extends BaseCalendar
      * significant.
      * </p>
      */
-    public function getExcludedDates() {
+    public function getExcludedDates()
+    {
         $dates = [];
-        foreach ($this->getValue('excludedDates') as $date) {
+        foreach ($this->getValue('excludedDates') as $date => $v) {
             $dates[] = \DateTime::createFromFormat('U', $date, $this->getTimeZone());
         }
 
