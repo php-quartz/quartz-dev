@@ -4,7 +4,7 @@ namespace Quartz\Core;
 use Makasim\Values\ValuesTrait;
 use Ramsey\Uuid\Uuid;
 
-class Key
+class Key implements Model
 {
     use ValuesTrait;
 

@@ -4,8 +4,9 @@ namespace Quartz\JobDetail;
 use Makasim\Values\ValuesTrait;
 use Quartz\Core\JobDetail as BaseJobDetail;
 use Quartz\Core\Key;
+use Quartz\Core\Model;
 
-class JobDetail implements BaseJobDetail
+class JobDetail implements Model, BaseJobDetail
 {
     use ValuesTrait;
 
@@ -34,7 +35,7 @@ class JobDetail implements BaseJobDetail
      */
     public function getKey()
     {
-        if ($this->key) {
+        if (null == $this->key) {
             $this->key = new Key($this->getValue('name'), $this->getValue('group'));
         }
 

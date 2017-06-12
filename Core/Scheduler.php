@@ -1,176 +1,15 @@
 <?php
 namespace Quartz\Core;
 
-use Quartz\Events\Event;
-use Quartz\Events\GroupsEvent;
-use Quartz\Events\JobDetailEvent;
-use Quartz\Events\JobExecutionContextEvent;
-use Quartz\Events\KeyEvent;
-use Quartz\Events\TriggerEvent;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-
-class Scheduler
+interface Scheduler
 {
-    /**
-     * @var JobStore
-     */
-    private $store;
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    /// Scheduler State Management Methods
+    ///
+    ///////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @var JobRunShellFactory
-     */
-    private $jobRunShellFactory;
-
-    /**
-     * @var JobFactory
-     */
-    private $jobFactory;
-
-    /**
-     * @var EventDispatcher
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var int seconds
-     */
-    private $sleepTime;
-
-    /**
-     * @var int
-     */
-    private $maxCount;
-
-    /**
-     * @var int seconds
-     */
-    private $timeWindow;
-
-    public function __construct(JobStore $store, JobRunShellFactory $jobRunShellFactory, JobFactory $jobFactory, EventDispatcher $eventDispatcher)
-    {
-        $this->store = $store;
-        $this->jobRunShellFactory = $jobRunShellFactory;
-        $this->jobFactory = $jobFactory;
-        $this->eventDispatcher = $eventDispatcher;
-
-        $this->maxCount = 10;
-        $this->sleepTime = 5;
-        $this->timeWindow = 30;
-
-        $store->initialize($this);
-    }
-
-    public function start()
-    {
-        $this->notifySchedulerListenersStarting();
-        $this->store->schedulerStarted();
-        $this->notifySchedulerListenersStarted();
-
-        while (true) {
-            $execStart = time();
-            if ($triggers = $this->store->acquireNextTriggers($execStart + $this->timeWindow, $this->maxCount, 0)) {
-                $firedTriggers = $this->store->triggersFired($triggers, $execStart + $this->sleepTime);
-
-                foreach ($firedTriggers as $firedTrigger) {
-                    $jobRunShell = $this->jobRunShellFactory->createJobRunShell($firedTrigger);
-                    $jobRunShell->initialize($this);
-                    $jobRunShell->execute($firedTrigger);
-                }
-            }
-            $execEnd = time();
-
-            $remainingWaitTime = $this->sleepTime - ($execEnd - $execStart);
-            if ($remainingWaitTime > 0) {
-                sleep($remainingWaitTime);
-            }
-        }
-    }
-
-    /**
-     * @return JobFactory
-     */
-    public function getJobFactory()
-    {
-        return $this->jobFactory;
-    }
-
-    /**
-     * @return EventDispatcher
-     */
-    public function getEventDispatcher()
-    {
-        return $this->eventDispatcher;
-    }
-
-    /**
-     * @return JobStore
-     */
-    public function getStore()
-    {
-        return $this->store;
-    }
-
-    /**
-     * @param Trigger   $trigger
-     * @param JobDetail $detail
-     * @param string    $instructionCode
-     */
-    public function notifyJobStoreJobComplete(Trigger $trigger, JobDetail $detail = null, $instructionCode)
-    {
-        $this->store->triggeredJobComplete($trigger, $detail, $instructionCode);
-    }
-
-    /**
-     * @param JobExecutionContext $context
-     *
-     * @return bool vetoed
-     */
-    public function notifyTriggerListenersFired(JobExecutionContext $context)
-    {
-        $this->notify(Event::TRIGGER_FIRED, $event = new JobExecutionContextEvent($context));
-
-        return $event->isVetoed();
-    }
-
-    public function notifyTriggerListenersComplete(JobExecutionContext $context)
-    {
-        $this->notify(Event::TRIGGER_COMPLETE, new JobExecutionContextEvent($context));
-    }
-
-    public function notifyJobListenersWasVetoed(JobExecutionContext $context)
-    {
-        $this->notify(Event::JOB_EXECUTION_VETOED, new JobExecutionContextEvent($context));
-    }
-
-    public function notifyJobListenersToBeExecuted(JobExecutionContext $context)
-    {
-        $this->notify(Event::JOB_TO_BE_EXECUTED, new JobExecutionContextEvent($context));
-    }
-
-    public function notifyJobListenersWasExecuted(JobExecutionContext $context)
-    {
-        $this->notify(Event::JOB_WAS_EXECUTED, new JobExecutionContextEvent($context));
-    }
-
-    public function notifySchedulerListenersFinalized(Trigger $trigger)
-    {
-        $this->notify(Event::TRIGGER_FINALIZED, new TriggerEvent($trigger));
-    }
-
-    public function notifyTriggerListenersMisfired(Trigger $trigger)
-    {
-        $this->notify(Event::TRIGGER_MISFIRED, new TriggerEvent($trigger));
-    }
-
-    public function notifySchedulerListenersStarted()
-    {
-        $this->notify(Event::SCHEDULER_STARTED, new Event());
-    }
-
-    public function notifySchedulerListenersStarting()
-    {
-        $this->notify(Event::SCHEDULER_STARTING, new Event());
-    }
+    public function start();
 
     ///////////////////////////////////////////////////////////////////////////
     ///
@@ -179,27 +18,12 @@ class Scheduler
     ///////////////////////////////////////////////////////////////////////////
 
     /**
-     * @param string $name
-     * @param Event  $event
-     */
-    private function notify($name, Event $event)
-    {
-        $this->eventDispatcher->dispatch($name, $event);
-    }
-
-    /**
      * Clears (deletes!) all scheduling data - all {@link Job}s, {@link Trigger}s
      * {@link Calendar}s.
      *
      * @throws SchedulerException
      */
-    public function clear()
-    {
-        $this->store->clearAllSchedulingData();
-
-        $this->notify(Event::SCHEDULING_DATA_CLEARED, new Event());
-    }
-
+    public function clear();
     /**
      * @param Trigger   $trigger
      * @param JobDetail $jobDetail
@@ -208,48 +32,7 @@ class Scheduler
      *
      * @throws SchedulerException
      */
-    public function scheduleJob(Trigger $trigger, JobDetail $jobDetail = null)
-    {
-        if ($jobDetail) {
-            if ($jobDetail->getKey() == null) {
-                throw new SchedulerException('Job\'s key cannot be null');
-            }
-
-            if ($trigger->getJobKey() == null) {
-                $trigger->setJobKey(clone $jobDetail->getKey());
-            } else if (false == $trigger->getJobKey()->equals($jobDetail->getKey())) {
-                throw new SchedulerException('Trigger does not reference given job!');
-            }
-        }
-
-        $trigger->validate();
-
-        $calendar = null;
-        if ($trigger->getCalendarName() != null) {
-            $calendar = $this->store->retrieveCalendar($trigger->getCalendarName());
-        }
-
-        $firstFireTime = $trigger->computeFirstFireTime($calendar);
-
-        if ($firstFireTime == null) {
-            throw new SchedulerException(sprintf(
-                'Based on configured schedule, the given trigger "%s" will never fire.', $trigger->getKey()
-            ));
-        }
-
-        if ($jobDetail) {
-            $this->store->storeJobAndTrigger($jobDetail, $trigger);
-
-            $this->notify(Event::JOB_ADDED, new JobDetailEvent($jobDetail));
-            $this->notify(Event::JOB_SCHEDULED, new TriggerEvent($trigger));
-        } else {
-            $this->store->storeTrigger($trigger);
-
-            $this->notify(Event::JOB_SCHEDULED, new TriggerEvent($trigger));
-        }
-
-        return $firstFireTime;
-    }
+    public function scheduleJob(Trigger $trigger, JobDetail $jobDetail = null);
 
     /**
      * Add the given <code>Job</code> to the Scheduler - with no associated
@@ -273,16 +56,7 @@ class Scheduler
      *           durable, or a Job with the same name already exists, and
      *           <code>replace</code> is <code>false</code>.
      */
-    public function addJob(JobDetail $jobDetail, $replace = false, $storeNonDurableWhileAwaitingScheduling = false)
-    {
-        if (false == $storeNonDurableWhileAwaitingScheduling && false == $jobDetail->isDurable()) {
-            throw new SchedulerException('Jobs added with no trigger must be durable.');
-        }
-
-        $this->store->storeJob($jobDetail, $replace);
-
-        $this->notify(Event::JOB_ADDED, new JobDetailEvent($jobDetail));
-    }
+    public function addJob(JobDetail $jobDetail, $replace = false, $storeNonDurableWhileAwaitingScheduling = false);
 
     /**
      * Delete the identified <code>Job</code>s from the Scheduler - and any
@@ -302,16 +76,7 @@ class Scheduler
      * @throws SchedulerException
      *           if there is an internal Scheduler error.
      */
-    public function deleteJobs(array $jobKeys)
-    {
-        $result = $this->store->removeJobs($jobKeys);
-
-        foreach ($jobKeys as $key) {
-            $this->notify(Event::JOB_DELETED, new KeyEvent($key));
-        }
-
-        return $result;
-    }
+    public function deleteJobs(array $jobKeys);
 
     /**
      * Remove all of the indicated <code>{@link Trigger}</code>s from the scheduler.
@@ -327,16 +92,7 @@ class Scheduler
      *
      * @param Key[] $triggerKeys
      */
-    public function unscheduleJobs(array $triggerKeys)
-    {
-        $result = $this->store->removeTriggers($triggerKeys);
-
-        foreach ($triggerKeys as $key) {
-            $this->notify(Event::JOB_UNSCHEDULED, new KeyEvent($key));
-        }
-
-        return $result;
-    }
+    public function unscheduleJobs(array $triggerKeys);
 
     /**
      * <p>
@@ -348,16 +104,7 @@ class Scheduler
      *
      * @return bool
      */
-    public function unscheduleJob(Key $triggerKey)
-    {
-        if ($this->store->removeTrigger($triggerKey)) {
-            $this->notify(Event::JOB_UNSCHEDULED, new KeyEvent($triggerKey));
-
-            return true;
-        }
-
-        return false;
-    }
+    public function unscheduleJob(Key $triggerKey);
 
     /**
      * <p>
@@ -372,20 +119,7 @@ class Scheduler
      * @throws SchedulerException
      *           if there is an internal Scheduler error.
      */
-    public function deleteJob(Key $jobKey)
-    {
-        $triggers = $this->store->getTriggersForJob($jobKey);
-
-        $this->unscheduleJobs($triggers);
-
-        if ($this->store->removeJob($jobKey)) {
-            $this->notify(Event::JOB_DELETED, new KeyEvent($jobKey));
-
-            return true;
-        }
-
-        return false;
-    }
+    public function deleteJob(Key $jobKey);
 
     /**
      * <p>
@@ -404,38 +138,7 @@ class Scheduler
      *
      * @throws SchedulerException
      */
-    public function rescheduleJob(Key $triggerKey, Trigger $newTrigger)
-    {
-        $oldTrigger = $this->store->retrieveTrigger($triggerKey);
-
-        if (null == $oldTrigger) {
-            return null;
-        } else {
-            $newTrigger->setJobKey(clone $oldTrigger->getJobKey());
-        }
-
-        $newTrigger->validate();
-
-        $cal = null;
-        if ($newTrigger->getCalendarName()) {
-            $cal = $this->store->retrieveCalendar($newTrigger->getCalendarName());
-        }
-
-        $firstFireTime = $newTrigger->computeFirstFireTime($cal);
-
-        if (null == $firstFireTime) {
-            throw new SchedulerException('Based on configured schedule, the given trigger will never fire.');
-        }
-
-        if (false == $this->store->replaceTrigger($triggerKey, $newTrigger)) {
-            return null;
-        }
-
-        $this->notify(Event::JOB_UNSCHEDULED, new KeyEvent(clone $oldTrigger->getKey()));
-        $this->notify(Event::JOB_SCHEDULED, new TriggerEvent($newTrigger));
-
-        return $firstFireTime;
-    }
+    public function rescheduleJob(Key $triggerKey, Trigger $newTrigger);
 
     /**
      * <p>
@@ -446,16 +149,7 @@ class Scheduler
      * @param Key   $jobKey
      * @param array $jobDataMap
      */
-    public function triggerJob(Key $jobKey, array $jobDataMap = [])
-    {
-        $trigger = TriggerBuilder::newTrigger()->forJobKey($jobKey)->build();
-        $trigger->setJobDataMap($jobDataMap);
-        $trigger->computeFirstFireTime();
-
-        $this->store->storeTrigger($trigger);
-
-        $this->notify(Event::JOB_SCHEDULED, new TriggerEvent($trigger));
-    }
+    public function triggerJob(Key $jobKey, array $jobDataMap = []);
 
     /**
      * <p>
@@ -464,12 +158,7 @@ class Scheduler
      *
      * @param Key $triggerKey
      */
-    public function pauseTrigger(Key $triggerKey)
-    {
-        $this->store->pauseTrigger($triggerKey);
-
-        $this->notify(Event::TRIGGER_PAUSED, new KeyEvent($triggerKey));
-    }
+    public function pauseTrigger(Key $triggerKey);
 
     /**
      * <p>
@@ -479,20 +168,12 @@ class Scheduler
      *
      * @param Key $jobKey
      */
-    public function pauseJob(Key $jobKey)
-    {
-        $this->store->pauseJob($jobKey);
-
-        $this->notify(Event::JOB_PAUSED, new KeyEvent($jobKey));
-    }
+    public function pauseJob(Key $jobKey);
 
     /**
      * @return string[]
      */
-    public function getPausedTriggerGroups()
-    {
-        return $this->store->getPausedTriggerGroups();
-    }
+    public function getPausedTriggerGroups();
 
     /**
      * <p>
@@ -508,12 +189,7 @@ class Scheduler
      * @param Key $triggerKey
      *
      */
-    public function resumeTrigger(Key $triggerKey)
-    {
-        $this->store->resumeTrigger($triggerKey);
-
-        $this->notify(Event::TRIGGER_RESUMED, new KeyEvent($triggerKey));
-    }
+    public function resumeTrigger(Key $triggerKey);
 
     /**
      * <p>
@@ -529,12 +205,7 @@ class Scheduler
      *
      * @param Key $jobKey
      */
-    public function resumeJob(Key $jobKey)
-    {
-        $this->store->resumeJob($jobKey);
-
-        $this->notify(Event::JOB_RESUMED, new KeyEvent($jobKey));
-    }
+    public function resumeJob(Key $jobKey);
 
     /**
      * <p>
@@ -547,12 +218,7 @@ class Scheduler
      * instructions WILL be applied.
      * </p>
      */
-    public function pauseAll()
-    {
-        $this->store->pauseAll();
-
-        $this->notify(Event::TRIGGERS_PAUSED, new GroupsEvent(null));
-    }
+    public function pauseAll();
 
     /**
      * <p>
@@ -567,12 +233,7 @@ class Scheduler
      *
      * @see #pauseAll()
      */
-    public function resumeAll()
-    {
-        $this->store->resumeAll();
-
-        $this->notify(Event::TRIGGERS_RESUMED, new GroupsEvent(null));
-    }
+    public function resumeAll();
 
     /**
      * <p>
@@ -581,10 +242,7 @@ class Scheduler
      *
      * @return string[]
      */
-    public function getJobGroupNames()
-    {
-        return $this->store->getJobGroupNames();
-    }
+    public function getJobGroupNames();
 
     /**
      * <p>
@@ -594,10 +252,7 @@ class Scheduler
      *
      * @return string[]
      */
-    public function getTriggerGroupNames()
-    {
-        return $this->store->getTriggerGroupNames();
-    }
+    public function getTriggerGroupNames();
 
     /**
      * <p>
@@ -609,10 +264,7 @@ class Scheduler
      *
      * @return Trigger[]
      */
-    public function getTriggersOfJob(Key $jobKey)
-    {
-        return $this->store->getTriggersForJob($jobKey);
-    }
+    public function getTriggersOfJob(Key $jobKey);
 
     /**
      * <p>
@@ -624,10 +276,7 @@ class Scheduler
      *
      * @return JobDetail
      */
-    public function getJobDetail(Key $jobKey)
-    {
-        return $this->store->retrieveJob($jobKey);
-    }
+    public function getJobDetail(Key $jobKey);
 
     /**
      * <p>
@@ -639,10 +288,7 @@ class Scheduler
      *
      * @return Trigger
      */
-    public function getTrigger(Key $triggerKey)
-    {
-        return $this->store->retrieveTrigger($triggerKey);
-    }
+    public function getTrigger(Key $triggerKey);
 
     /**
      * <p>
@@ -653,10 +299,7 @@ class Scheduler
      *
      * @return string
      */
-    public function getTriggerState(Key $triggerKey)
-    {
-        return $this->store->getTriggerState($triggerKey);
-    }
+    public function getTriggerState(Key $triggerKey);
 
     /**
      * <p>
@@ -673,10 +316,7 @@ class Scheduler
      *           the same name already exists, and <code>replace</code> is
      *           <code>false</code>.
      */
-    public function addCalendar($calName, Calendar $calendar, $replace = false, $updateTriggers = false)
-    {
-        $this->store->storeCalendar($calName, $calendar, $replace, $updateTriggers);
-    }
+    public function addCalendar($calName, Calendar $calendar, $replace = false, $updateTriggers = false);
 
     /**
      * <p>
@@ -690,11 +330,7 @@ class Scheduler
      * @throws SchedulerException
      *           if there is an internal Scheduler error.
      */
-    public function deleteCalendar($calName)
-    {
-        return $this->store->removeCalendar($calName);
-    }
-
+    public function deleteCalendar($calName);
 
     /**
      * <p>
@@ -705,10 +341,7 @@ class Scheduler
      *
      * @return Calendar
      */
-    public function getCalendar($calName)
-    {
-        return $this->store->retrieveCalendar($calName);
-    }
+    public function getCalendar($calName);
 
     /**
      * <p>
@@ -717,10 +350,7 @@ class Scheduler
      *
      * @return string
      */
-    public function getCalendarNames()
-    {
-        return $this->store->getCalendarNames();
-    }
+    public function getCalendarNames();
 
     /**
      * Determine whether a {@link Job} with the given identifier already
@@ -732,10 +362,7 @@ class Scheduler
      *
      * @throws SchedulerException
      */
-    public function checkJobExists(Key $jobKey)
-    {
-        return $this->store->checkJobExists($jobKey);
-    }
+    public function checkJobExists(Key $jobKey);
 
     /**
      * Determine whether a {@link Trigger} with the given identifier already
@@ -747,10 +374,7 @@ class Scheduler
      *
      * @throws SchedulerException
      */
-    public function checkTriggerExists(Key $triggerKey)
-    {
-        return $this->store->checkTriggerExists($triggerKey);
-    }
+    public function checkTriggerExists(Key $triggerKey);
 
     /**
      * Reset the current state of the identified <code>{@link Trigger}</code>
@@ -766,10 +390,7 @@ class Scheduler
      *
      * @param Key $triggerKey
      */
-    function resetTriggerFromErrorState(Key $triggerKey)
-    {
-        return $this->store->resetTriggerFromErrorState($triggerKey);
-    }
+    function resetTriggerFromErrorState(Key $triggerKey);
 
 //    /**
 //     * <p>
@@ -817,5 +438,4 @@ class Scheduler
 //     * @return Key[]
 //     */
 //    public function getTriggerKeys(GroupMatcher $matcher)
-
 }

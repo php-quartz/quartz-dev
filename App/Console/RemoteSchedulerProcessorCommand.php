@@ -7,13 +7,12 @@ use Enqueue\Consumption\Extension\ReplyExtension;
 use Quartz\App\LoggerSubscriber;
 use Quartz\App\RemoteScheduler;
 use Quartz\App\SchedulerFactory;
-use Quartz\App\Async\AsyncJobRunShell;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class JobRunShellCommand extends Command
+class RemoteSchedulerProcessorCommand extends Command
 {
     /**
      * SchedulerFactory
@@ -25,11 +24,10 @@ class JobRunShellCommand extends Command
      */
     public function __construct(SchedulerFactory $factory)
     {
-        parent::__construct('job-run-shell');
+        parent::__construct('remote-scheduler-processor');
 
         $this->factory = $factory;
     }
-
 
     /**
      * {@inheritdoc}
@@ -37,17 +35,12 @@ class JobRunShellCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $enqueue = $this->factory->getEnqueue();
-        $processor = $this->factory->getJobRunShellProcessor();
+        $processor = $this->factory->getRemoteSchedulerProcessor();
 
         $scheduler = $this->factory->getScheduler();
         $logger = new LoggerSubscriber(new ConsoleLogger($output));
         $scheduler->getEventDispatcher()->addSubscriber($logger);
 
-        $enqueue->bind(AsyncJobRunShell::TOPIC, AsyncJobRunShell::TOPIC, function($message, $context) use ($processor) {
-            return $processor->process($message, $context);
-        });
-
-        $processor = $this->factory->getRemoteSchedulerProcessor();
         $enqueue->bind(RemoteScheduler::TOPIC, RemoteScheduler::TOPIC, function($message, $context) use ($processor) {
             return $processor->process($message, $context);
         });

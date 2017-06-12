@@ -10,6 +10,7 @@ use Quartz\Core\SchedulerFactory as BaseSchedulerFactory;
 use Quartz\Core\SimpleJobFactory;
 use Quartz\Core\StdJobRunShell;
 use Quartz\Core\StdJobRunShellFactory;
+use Quartz\Core\StdScheduler;
 use Quartz\Store\YadmStore;
 use Quartz\Store\YadmStoreResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -62,7 +63,7 @@ class SchedulerFactory implements BaseSchedulerFactory
         if (null == $this->scheduler) {
             $eventDispatcher = new EventDispatcher();
 
-            $this->scheduler = new Scheduler(
+            $this->scheduler = new StdScheduler(
                 $this->getStore(),
                 $this->getJobRunShellFactory(),
                 $this->getJobFactory(),
@@ -109,6 +110,14 @@ class SchedulerFactory implements BaseSchedulerFactory
         $jobRunShell->initialize($this->getScheduler());
 
         return new JobRunShellProcessor($this->getStore(), $jobRunShell);
+    }
+
+    /**
+     * @return RemoteSchedulerProcessor
+     */
+    public function getRemoteSchedulerProcessor()
+    {
+        return new RemoteSchedulerProcessor($this->getScheduler(), new RpcProtocol());
     }
 
     /**

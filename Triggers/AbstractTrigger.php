@@ -8,10 +8,11 @@ use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\DateBuilder;
 use Quartz\Core\JobExecutionContext;
 use Quartz\Core\Key;
+use Quartz\Core\Model;
 use Quartz\Core\SchedulerException;
 use Quartz\Core\Trigger;
 
-abstract class AbstractTrigger implements Trigger
+abstract class AbstractTrigger implements Model, Trigger
 {
     use CastTrait;
     use ValuesTrait;

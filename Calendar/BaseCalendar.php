@@ -5,9 +5,10 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Makasim\Values\ObjectsTrait;
 use Makasim\Values\ValuesTrait;
 use Quartz\Core\Calendar;
+use Quartz\Core\Model;
 use Quartz\ModelClassFactory;
 
-abstract class BaseCalendar implements Calendar
+abstract class BaseCalendar implements Model, Calendar
 {
     use ValuesTrait;
     use ObjectsTrait;
