@@ -35,7 +35,6 @@ class ManagementCommand extends Command
             ->addOption('create-indexes', null, InputOption::VALUE_NONE, 'Creates all required storage indexes')
             ->addOption('create-queues', null, InputOption::VALUE_NONE, 'Creates all required queues')
         ;
-
     }
 
     /**

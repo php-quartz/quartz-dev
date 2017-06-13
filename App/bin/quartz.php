@@ -2,9 +2,8 @@
 <?php
 
 use function Makasim\Values\register_cast_hooks;
-use Quartz\App\Console\JobRunShellCommand;
+use Quartz\App\Console\WorkerCommand;
 use Quartz\App\Console\ManagementCommand;
-use Quartz\App\Console\RemoteSchedulerProcessorCommand;
 use Quartz\App\Console\SchedulerCommand;
 use Quartz\App\SchedulerFactory;
 use Symfony\Component\Console\Application;
@@ -31,8 +30,7 @@ $factory = new SchedulerFactory($config);
 
 $application = new Application();
 $application->add(new SchedulerCommand($factory));
-$application->add(new JobRunShellCommand($factory));
+$application->add(new WorkerCommand($factory));
 $application->add(new ManagementCommand($factory));
-$application->add(new RemoteSchedulerProcessorCommand($factory));
 
 $application->run();

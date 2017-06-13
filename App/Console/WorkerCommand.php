@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class JobRunShellCommand extends Command
+class WorkerCommand extends Command
 {
     /**
      * SchedulerFactory
@@ -25,7 +25,7 @@ class JobRunShellCommand extends Command
      */
     public function __construct(SchedulerFactory $factory)
     {
-        parent::__construct('job-run-shell');
+        parent::__construct('worker');
 
         $this->factory = $factory;
     }
@@ -37,19 +37,19 @@ class JobRunShellCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $enqueue = $this->factory->getEnqueue();
-        $processor = $this->factory->getJobRunShellProcessor();
 
         $scheduler = $this->factory->getScheduler();
         $logger = new LoggerSubscriber(new ConsoleLogger($output));
         $scheduler->getEventDispatcher()->addSubscriber($logger);
 
-        $enqueue->bind(AsyncJobRunShell::TOPIC, AsyncJobRunShell::TOPIC, function($message, $context) use ($processor) {
-            return $processor->process($message, $context);
+        $jobRunShell = $this->factory->getJobRunShellProcessor();
+        $enqueue->bind(AsyncJobRunShell::TOPIC, AsyncJobRunShell::TOPIC, function($message, $context) use ($jobRunShell) {
+            return $jobRunShell->process($message, $context);
         });
 
-        $processor = $this->factory->getRemoteSchedulerProcessor();
-        $enqueue->bind(RemoteScheduler::TOPIC, RemoteScheduler::TOPIC, function($message, $context) use ($processor) {
-            return $processor->process($message, $context);
+        $remoteScheduler = $this->factory->getRemoteSchedulerProcessor();
+        $enqueue->bind(RemoteScheduler::TOPIC, RemoteScheduler::TOPIC, function($message, $context) use ($remoteScheduler) {
+            return $remoteScheduler->process($message, $context);
         });
 
         $extensions = new ChainExtension([new ReplyExtension(), new LoggerExtension(new ConsoleLogger($output))]);

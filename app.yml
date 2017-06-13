@@ -23,10 +23,10 @@ services:
       RABBITMQ_PASS: 'guest'
       RABBITMQ_VHOST: 'quartz'
 
-  job-run-shell:
+  worker:
     image: 'formapro/nginx-php-fpm:latest-all-exts'
     working_dir: '/app/App'
-#    entrypoint: 'php bin/quartz.php job-run-shell -vvv'
+#    entrypoint: 'php bin/quartz.php worker -vvv'
     restart: 'on-failure'
     depends_on:
       - 'mongo'
