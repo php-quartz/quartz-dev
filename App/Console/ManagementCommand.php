@@ -44,21 +44,18 @@ class ManagementCommand extends Command
     {
         $scheduler = $this->factory->getScheduler();
 
-        $createIndexes = $input->getOption('create-indexes');
-
         if ($input->getOption('clear-all')) {
             $helper = $this->getHelper('question');
-            $question = new ConfirmationQuestion('You are just about to delete all storage data. Are you sure?', false, '/^(y|j)/i');
+            $question = new ConfirmationQuestion('You are just about to delete all storage data. Are you sure? ', false, '/^(y|j)/i');
 
             if ($helper->ask($input, $output, $question)) {
                 $scheduler->clear();
-                $createIndexes = true;
             }
         }
 
-        if ($createIndexes) {
+        if ($input->getOption('create-indexes')) {
             $output->writeln('Creating storage indexes');
-            $scheduler->getStore()->createIndexes(); // is not part of interface :(
+            $scheduler->getStore()->createIndexes(); // TODO: is not part of interface :(
         }
 
         if ($input->getOption('create-queues')) {

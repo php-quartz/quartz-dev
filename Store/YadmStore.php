@@ -395,11 +395,11 @@ class YadmStore implements JobStore
 
     public function doClearAllSchedulingData()
     {
-        $this->res->getTriggerStorage()->getCollection()->drop();
-        $this->res->getJobStorage()->getCollection()->drop();
-        $this->res->getCalendarStorage()->getCollection()->drop();
-        $this->res->getPausedTriggerCol()->drop();
-        $this->res->getFiredTriggerStorage()->getCollection()->drop();
+        $this->res->getTriggerStorage()->getCollection()->deleteMany([]);
+        $this->res->getJobStorage()->getCollection()->deleteMany([]);
+        $this->res->getCalendarStorage()->getCollection()->deleteMany([]);
+        $this->res->getPausedTriggerCol()->deleteMany([]);
+        $this->res->getFiredTriggerStorage()->getCollection()->deleteMany([]);
     }
 
     /**
@@ -1047,6 +1047,7 @@ class YadmStore implements JobStore
             ], [
                 '$set' => [
                     'state' => Trigger::STATE_COMPLETE,
+                    'errorMessage' => $trigger->getErrorMessage(),
                 ]
             ]);
         } elseif ($triggerInstCode === CompletedExecutionInstruction::SET_TRIGGER_ERROR) {
@@ -1066,6 +1067,7 @@ class YadmStore implements JobStore
             ], [
                 '$set' => [
                     'state' => Trigger::STATE_COMPLETE,
+                    'errorMessage' => $trigger->getErrorMessage(),
                 ]
             ]);
         } elseif ($triggerInstCode === CompletedExecutionInstruction::SET_ALL_JOB_TRIGGERS_ERROR) {
