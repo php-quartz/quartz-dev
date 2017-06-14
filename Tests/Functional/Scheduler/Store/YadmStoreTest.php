@@ -1,18 +1,18 @@
 <?php
-namespace Quartz\Tests\Functional;
+namespace Quartz\Tests\Functional\Scheduler\Store;
 
 use function Makasim\Values\register_cast_hooks;
 use Quartz\Calendar\HolidayCalendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobPersistenceException;
 use Quartz\Core\Key;
-use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerException;
 use Quartz\Core\Trigger;
 use Quartz\JobDetail\JobDetail;
-use Quartz\Store\ObjectAlreadyExistsException;
-use Quartz\Store\YadmStore;
-use Quartz\Store\YadmStoreResource;
+use Quartz\Core\ObjectAlreadyExistsException;
+use Quartz\Scheduler\StdScheduler;
+use Quartz\Scheduler\Store\YadmStore;
+use Quartz\Scheduler\Store\YadmStoreResource;
 use Quartz\Triggers\SimpleTrigger;
 
 class YadmStoreTest extends \PHPUnit_Framework_TestCase
@@ -43,7 +43,7 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
 
         $this->res = new YadmStoreResource($config);
         $this->store = new YadmStore($this->res);
-        $this->store->initialize($this->createMock(Scheduler::class));
+        $this->store->initialize($this->createMock(StdScheduler::class));
         $this->store->clearAllSchedulingData();
     }
 

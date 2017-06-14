@@ -6,10 +6,10 @@ use Quartz\Core\JobExecutionContext;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SimpleJobFactory;
 use Quartz\Core\SimpleScheduleBuilder;
-use Quartz\Core\StdJobRunShellFactory;
+use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Core\TriggerBuilder;
-use Quartz\Store\YadmStore;
-use Quartz\Store\YadmStoreResource;;
+use Quartz\Scheduler\Store\YadmStore;
+use Quartz\Scheduler\Store\YadmStoreResource;;
 
 require_once '../vendor/autoload.php';
 

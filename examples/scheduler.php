@@ -4,9 +4,9 @@ use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SimpleJobFactory;
-use Quartz\Core\StdJobRunShellFactory;
-use Quartz\Store\YadmStore;
-use Quartz\Store\YadmStoreResource;;
+use Quartz\Scheduler\StdJobRunShellFactory;
+use Quartz\Scheduler\Store\YadmStore;
+use Quartz\Scheduler\Store\YadmStoreResource;;
 
 require_once '../vendor/autoload.php';
 

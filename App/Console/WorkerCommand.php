@@ -30,7 +30,6 @@ class WorkerCommand extends Command
         $this->factory = $factory;
     }
 
-
     /**
      * {@inheritdoc}
      */

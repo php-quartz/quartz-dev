@@ -2,9 +2,9 @@
 namespace Quartz\App\Async;
 
 use Enqueue\Client\ProducerInterface;
-use Quartz\Core\JobRunShell;
-use Quartz\Core\Scheduler;
+use Quartz\Scheduler\JobRunShell;
 use Quartz\Core\Trigger;
+use Quartz\Scheduler\StdScheduler;
 
 class AsyncJobRunShell implements JobRunShell
 {
@@ -26,7 +26,7 @@ class AsyncJobRunShell implements JobRunShell
     /**
      * {@inheritdoc}
      */
-    public function initialize(Scheduler $scheduler)
+    public function initialize(StdScheduler $scheduler)
     {
     }
 

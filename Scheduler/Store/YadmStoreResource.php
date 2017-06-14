@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\Store;
+namespace Quartz\Scheduler\Store;
 
 use Makasim\Yadm\Hydrator;
 use Makasim\Yadm\PessimisticLock;

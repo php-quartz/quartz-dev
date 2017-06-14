@@ -1,17 +1,21 @@
 <?php
-namespace Quartz\Core;
+namespace Quartz\Scheduler;
+
+use Quartz\Core\CompletedExecutionInstruction;
+use Quartz\Core\JobExecutionContext;
+use Quartz\Core\Trigger;
 
 class StdJobRunShell implements JobRunShell
 {
     /**
-     * @var Scheduler
+     * @var StdScheduler
      */
     private $scheduler;
 
     /**
      * {@inheritdoc}
      */
-    public function initialize(Scheduler $scheduler)
+    public function initialize(StdScheduler $scheduler)
     {
         $this->scheduler = $scheduler;
     }

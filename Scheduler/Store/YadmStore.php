@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\Store;
+namespace Quartz\Scheduler\Store;
 
 use function Makasim\Values\get_values;
 use function Makasim\Values\set_value;
@@ -10,10 +10,11 @@ use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobDetail;
 use Quartz\Core\JobPersistenceException;
-use Quartz\Core\JobStore;
+use Quartz\Core\ObjectAlreadyExistsException;
+use Quartz\Scheduler\JobStore;
 use Quartz\Core\Key;
-use Quartz\Core\Scheduler;
 use Quartz\Core\Trigger;
+use Quartz\Scheduler\StdScheduler;
 use Ramsey\Uuid\Uuid;
 
 class YadmStore implements JobStore
@@ -27,7 +28,7 @@ class YadmStore implements JobStore
     private $res;
 
     /**
-     * @var Scheduler
+     * @var StdScheduler
      */
     private $scheduler;
 
@@ -47,7 +48,7 @@ class YadmStore implements JobStore
     /**
      * {@inheritdoc}
      */
-    public function initialize(Scheduler $scheduler)
+    public function initialize(StdScheduler $scheduler)
     {
         $this->scheduler = $scheduler;
     }

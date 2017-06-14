@@ -1,14 +1,20 @@
 <?php
-namespace Quartz\Core;
+namespace Quartz\Scheduler;
 
-use Quartz\Store\ObjectAlreadyExistsException;
+use Quartz\Core\Calendar;
+use Quartz\Core\JobDetail;
+use Quartz\Core\JobPersistenceException;
+use Quartz\Core\Key;
+use Quartz\Core\SchedulerException;
+use Quartz\Core\Trigger;
+use Quartz\Core\ObjectAlreadyExistsException;
 
 interface JobStore
 {
     /**
-     * @param Scheduler $scheduler
+     * @param StdScheduler $scheduler
      */
-    public function initialize(Scheduler $scheduler);
+    public function initialize(StdScheduler $scheduler);
 
     /**
      * Called by the Scheduler to inform the <code>JobStore</code> that

@@ -6,8 +6,8 @@ use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrMessage;
 use Enqueue\Psr\PsrProcessor;
 use Enqueue\Util\JSON;
-use Quartz\Core\JobStore;
-use Quartz\Core\StdJobRunShell;
+use Quartz\Scheduler\JobStore;
+use Quartz\Scheduler\StdJobRunShell;
 
 class JobRunShellProcessor implements PsrProcessor
 {

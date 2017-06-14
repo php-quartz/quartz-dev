@@ -1,5 +1,7 @@
 <?php
-namespace Quartz\Core;
+namespace Quartz\Scheduler;
+
+use Quartz\Core\Trigger;
 
 class StdJobRunShellFactory implements JobRunShellFactory
 {

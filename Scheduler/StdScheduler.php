@@ -1,13 +1,22 @@
 <?php
-namespace Quartz\Core;
+namespace Quartz\Scheduler;
 
+use Quartz\Core\Calendar;
+use Quartz\Core\JobDetail;
+use Quartz\Core\JobExecutionContext;
+use Quartz\Core\JobFactory;
+use Quartz\Core\Key;
+use Quartz\Core\Scheduler;
+use Quartz\Core\SchedulerException;
+use Quartz\Core\Trigger;
+use Quartz\Core\TriggerBuilder;
 use Quartz\Events\Event;
 use Quartz\Events\GroupsEvent;
 use Quartz\Events\JobDetailEvent;
 use Quartz\Events\JobExecutionContextEvent;
 use Quartz\Events\KeyEvent;
 use Quartz\Events\TriggerEvent;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class StdScheduler implements Scheduler
 {
@@ -27,7 +36,7 @@ class StdScheduler implements Scheduler
     private $jobFactory;
 
     /**
-     * @var EventDispatcher
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
@@ -46,7 +55,7 @@ class StdScheduler implements Scheduler
      */
     private $timeWindow;
 
-    public function __construct(JobStore $store, JobRunShellFactory $jobRunShellFactory, JobFactory $jobFactory, EventDispatcher $eventDispatcher)
+    public function __construct(JobStore $store, JobRunShellFactory $jobRunShellFactory, JobFactory $jobFactory, EventDispatcherInterface $eventDispatcher)
     {
         $this->store = $store;
         $this->jobRunShellFactory = $jobRunShellFactory;
@@ -95,7 +104,7 @@ class StdScheduler implements Scheduler
     }
 
     /**
-     * @return EventDispatcher
+     * @return EventDispatcherInterface
      */
     public function getEventDispatcher()
     {

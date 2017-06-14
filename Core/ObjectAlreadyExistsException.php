@@ -1,10 +1,12 @@
 <?php
-namespace Quartz\Store;
+namespace Quartz\Core;
 
-use Quartz\Core\JobDetail;
-use Quartz\Core\JobPersistenceException;
-use Quartz\Core\Trigger;
-
+/**
+ * An exception that is thrown to indicate that an attempt to store a new
+ * object (i.e. <code>{@link JobDetail}</code>,<code>{@link Trigger}</code>
+ * or <code>{@link Calendar}</code>) in a <code>{@link Scheduler}</code>
+ * failed, because one with the same name & group already exists.
+ */
 class ObjectAlreadyExistsException extends JobPersistenceException
 {
     /**

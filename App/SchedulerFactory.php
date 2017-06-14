@@ -5,15 +5,15 @@ use Enqueue\Client\RpcClient;
 use Enqueue\SimpleClient\SimpleClient;
 use Quartz\App\Async\AsyncJobRunShell;
 use Quartz\App\Async\JobRunShellProcessor;
-use Quartz\Core\JobRunShellFactory;
+use Quartz\Scheduler\JobRunShellFactory;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerFactory as BaseSchedulerFactory;
 use Quartz\Core\SimpleJobFactory;
-use Quartz\Core\StdJobRunShell;
-use Quartz\Core\StdJobRunShellFactory;
-use Quartz\Core\StdScheduler;
-use Quartz\Store\YadmStore;
-use Quartz\Store\YadmStoreResource;
+use Quartz\Scheduler\StdJobRunShell;
+use Quartz\Scheduler\StdJobRunShellFactory;
+use Quartz\Scheduler\StdScheduler;
+use Quartz\Scheduler\Store\YadmStore;
+use Quartz\Scheduler\Store\YadmStoreResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class SchedulerFactory implements BaseSchedulerFactory
@@ -101,7 +101,6 @@ class SchedulerFactory implements BaseSchedulerFactory
 
         return $this->jobFactory;
     }
-
 
     /**
      * @return JobRunShellProcessor
