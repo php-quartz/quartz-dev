@@ -39,11 +39,27 @@ class LoggerSubscriber implements EventSubscriberInterface
     public function jobWasExecuted(JobExecutionContextEvent $event)
     {
         $this->debug(sprintf('Job was executed: "%s"', (string) $event->getContext()->getJobDetail()->getKey()));
+
+        if ($e = $event->getContext()->getException()) {
+            $this->debug(sprintf('Job has thrown exception: "%s", "%s"', get_class($e), $e->getMessage()));
+        }
     }
 
     public function jobExecutionVetoed(JobExecutionContextEvent $event)
     {
-        $this->debug(sprintf('Job was executed: "%s"', (string) $event->getContext()->getJobDetail()->getKey()));
+        $this->debug(sprintf('Job was vetoed: "%s"', (string) $event->getContext()->getJobDetail()->getKey()));
+    }
+
+    public function triggerComplete(JobExecutionContextEvent $event)
+    {
+        $trigger = $event->getContext()->getTrigger();
+
+        $previousFireTime = $trigger->getPreviousFireTime() ? $trigger->getPreviousFireTime()->format(DATE_ISO8601) : 'null';
+        $scheduledFireTime = $trigger->getScheduledFireTime() ? $trigger->getScheduledFireTime()->format(DATE_ISO8601) : 'null';
+        $nextFireTime = $trigger->getNextFireTime() ? $trigger->getNextFireTime()->format(DATE_ISO8601) : 'null';
+
+        $this->debug(sprintf('Trigger execution completed: PreviousFireTime: "%s" ScheduledFireTime: "%s" NextFireTime: "%s"',
+            $previousFireTime, $scheduledFireTime, $nextFireTime));
     }
 
     /**
@@ -57,6 +73,7 @@ class LoggerSubscriber implements EventSubscriberInterface
             Event::JOB_TO_BE_EXECUTED => 'jobToBeExecuted',
             Event::JOB_WAS_EXECUTED => 'jobWasExecuted',
             Event::JOB_EXECUTION_VETOED => 'jobExecutionVetoed',
+            Event::TRIGGER_COMPLETE => 'triggerComplete',
         ];
     }
 

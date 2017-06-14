@@ -2,7 +2,6 @@
 namespace Quartz\App;
 
 use Enqueue\Client\RpcClient;
-use Enqueue\Rpc\TimeoutException;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 
@@ -14,11 +13,33 @@ class EnqueueResponseJob implements Job
     private $rpcClient;
 
     /**
+     * @var int msec
+     */
+    private $timeout;
+
+    /**
      * @param RpcClient $rpcClient
      */
     public function __construct(RpcClient $rpcClient)
     {
         $this->rpcClient = $rpcClient;
+        $this->timeout = 5000;
+    }
+
+    /**
+     * @param int $timeout msec
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = (int) $timeout;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTimeout()
+    {
+        return $this->timeout;
     }
 
     /**
@@ -36,10 +57,6 @@ class EnqueueResponseJob implements Job
             return;
         }
 
-        try {
-            $this->rpcClient->call($data['topic'], $data, 5000);
-        } catch (TimeoutException $e) {
-            // TODO: handle error statuses
-        }
+        $this->rpcClient->call($data['topic'], $data, $this->timeout);
     }
 }

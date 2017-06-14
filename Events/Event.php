@@ -188,7 +188,6 @@ class Event extends BaseEvent
      */
     const JOB_WAS_EXECUTED = 'job_was_executed';
 
-
     /**
      * <p>
      * Called by the <code>{@link Scheduler}</code> to inform the listener
