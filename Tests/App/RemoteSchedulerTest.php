@@ -1,8 +1,9 @@
 <?php
 namespace Quartz\Tests\App;
 
-use Enqueue\Client\RpcClient;
+use Enqueue\Client\ProducerV2Interface;
 use Enqueue\Null\NullMessage;
+use Enqueue\Rpc\Promise;
 use Enqueue\Util\JSON;
 use PHPUnit\Framework\TestCase;
 use Quartz\App\RemoteScheduler;
@@ -23,12 +24,19 @@ class RemoteSchedulerTest extends TestCase
 
         $responseMessage = new NullMessage(JSON::encode(['key' => 'value']));
 
-        $rpcClient = $this->createMock(RpcClient::class);
-        $rpcClient
+        $promise = $this->createMock(Promise::class);
+        $promise
             ->expects($this->once())
-            ->method('call')
-            ->with(RemoteScheduler::TOPIC, $request, 12345)
+            ->method('receive')
             ->willReturn($responseMessage)
+        ;
+
+        $producer = $this->createMock(ProducerV2Interface::class);
+        $producer
+            ->expects($this->once())
+            ->method('sendCommand')
+            ->with(RemoteScheduler::COMMAND, $request)
+            ->willReturn($promise)
         ;
 
         $rpcProto = $this->createMock(RpcProtocol::class);
@@ -45,8 +53,7 @@ class RemoteSchedulerTest extends TestCase
             ->willReturn($response)
         ;
 
-        $scheduler = new RemoteScheduler($rpcClient, $rpcProto);
-        $scheduler->setCallTimeout(12345);
+        $scheduler = new RemoteScheduler($producer, $rpcProto);
 
         $result = $scheduler->scheduleJob($trigger, $job);
 
@@ -62,11 +69,18 @@ class RemoteSchedulerTest extends TestCase
 
         $e = new SchedulerException('message');
 
-        $rpcClient = $this->createMock(RpcClient::class);
-        $rpcClient
+        $promise = $this->createMock(Promise::class);
+        $promise
             ->expects($this->once())
-            ->method('call')
+            ->method('receive')
             ->willReturn($responseMessage)
+        ;
+
+        $producer = $this->createMock(ProducerV2Interface::class);
+        $producer
+            ->expects($this->once())
+            ->method('sendCommand')
+            ->willReturn($promise)
         ;
 
         $rpcProto = $this->createMock(RpcProtocol::class);
@@ -76,7 +90,7 @@ class RemoteSchedulerTest extends TestCase
             ->willReturn($e)
         ;
 
-        $scheduler = new RemoteScheduler($rpcClient, $rpcProto);
+        $scheduler = new RemoteScheduler($producer, $rpcProto);
 
         $this->expectException(SchedulerException::class);
         $this->expectExceptionMessage('message');

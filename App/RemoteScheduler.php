@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\App;
 
-use Enqueue\Client\RpcClient;
+use Enqueue\Client\ProducerV2Interface;
 use Enqueue\Util\JSON;
 use Quartz\Core\Calendar;
 use Quartz\Core\JobDetail;
@@ -11,7 +11,12 @@ use Quartz\Core\Trigger;
 
 class RemoteScheduler implements Scheduler
 {
-    const TOPIC = 'quartz.rpc';
+    const COMMAND = 'quartz.rpc';
+
+    /**
+     * @var ProducerV2Interface
+     */
+    private $producer;
 
     /**
      * @var RpcProtocol
@@ -19,32 +24,13 @@ class RemoteScheduler implements Scheduler
     private $rpcProtocol;
 
     /**
-     * @var RpcClient
+     * @param ProducerV2Interface $producer
+     * @param RpcProtocol         $rpcProtocol
      */
-    private $rpcClient;
-
-    /**
-     * @var int msec
-     */
-    private $callTimeout;
-
-    /**
-     * @param RpcClient   $rpcClient
-     * @param RpcProtocol $rpcProtocol
-     */
-    public function __construct(RpcClient $rpcClient, RpcProtocol $rpcProtocol)
+    public function __construct(ProducerV2Interface $producer, RpcProtocol $rpcProtocol)
     {
-        $this->rpcClient = $rpcClient;
+        $this->producer = $producer;
         $this->rpcProtocol = $rpcProtocol;
-        $this->callTimeout = 30000;
-    }
-
-    /**
-     * @param int $timeout msec
-     */
-    public function setCallTimeout($timeout)
-    {
-        $this->callTimeout = (int) $timeout;
     }
 
     /**
@@ -59,7 +45,7 @@ class RemoteScheduler implements Scheduler
     {
         $request = $this->rpcProtocol->encodeRequest($method, $args);
 
-        $responseMessage = $this->rpcClient->call(self::TOPIC, $request, $this->callTimeout);
+        $responseMessage = $this->producer->sendCommand(self::COMMAND, $request, true)->receive();
 
         $response = $this->rpcProtocol->decodeValue(JSON::decode($responseMessage->getBody()));
 

@@ -42,12 +42,12 @@ class WorkerCommand extends Command
         $scheduler->getEventDispatcher()->addSubscriber($logger);
 
         $jobRunShell = $this->factory->getJobRunShellProcessor();
-        $enqueue->bind(AsyncJobRunShell::TOPIC, AsyncJobRunShell::TOPIC, function($message, $context) use ($jobRunShell) {
+        $enqueue->bind(AsyncJobRunShell::COMMAND, AsyncJobRunShell::COMMAND, function($message, $context) use ($jobRunShell) {
             return $jobRunShell->process($message, $context);
         });
 
         $remoteScheduler = $this->factory->getRemoteSchedulerProcessor();
-        $enqueue->bind(RemoteScheduler::TOPIC, RemoteScheduler::TOPIC, function($message, $context) use ($remoteScheduler) {
+        $enqueue->bind(RemoteScheduler::COMMAND, RemoteScheduler::COMMAND, function($message, $context) use ($remoteScheduler) {
             return $remoteScheduler->process($message, $context);
         });
 

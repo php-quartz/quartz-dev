@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Tests\App;
 
-use Enqueue\Client\RpcClient;
+use Enqueue\Client\ProducerV2Interface;
 use PHPUnit\Framework\TestCase;
 use Quartz\App\EnqueueResponseJob;
 use Quartz\Core\Job;
@@ -14,48 +14,41 @@ class EnqueueResponseJobTest extends TestCase
 {
     public function testShouldImplementJobInterface()
     {
-        $this->assertInstanceOf(Job::class, new EnqueueResponseJob($this->createRpcClientMock()));
-    }
-
-    public function testCouldSetGetTimeout()
-    {
-        $job = new EnqueueResponseJob($this->createRpcClientMock());
-
-        $this->assertSame(5000, $job->getTimeout());
-
-        $job->setTimeout(10000);
-
-        $this->assertSame(10000, $job->getTimeout());
+        $this->assertInstanceOf(Job::class, new EnqueueResponseJob($this->createProducerMock()));
     }
 
     public function testShouldUnscheduleTrigger()
     {
-        $rpc = $this->createRpcClientMock();
-        $rpc
+        $producer = $this->createProducerMock();
+        $producer
             ->expects($this->never())
-            ->method('call')
+            ->method('sendEvent')
+        ;
+        $producer
+            ->expects($this->never())
+            ->method('sendCommand')
         ;
 
-        $job = new EnqueueResponseJob($rpc);
+        $job = new EnqueueResponseJob($producer);
 
         $context = new JobExecutionContext($this->createMock(Scheduler::class), new SimpleTrigger(), new JobDetail());
 
         $job->execute($context);
 
-        $this->assertSame('There is no enqueue topic', $context->getTrigger()->getErrorMessage());
+        $this->assertSame('There is no enqueue topic or command', $context->getTrigger()->getErrorMessage());
         $this->assertTrue($context->isUnscheduleFiringTrigger());
     }
 
-    public function testShouldMakeRpcCall()
+    public function testShouldSendEvent()
     {
-        $rpc = $this->createRpcClientMock();
-        $rpc
+        $producer = $this->createProducerMock();
+        $producer
             ->expects($this->once())
-            ->method('call')
+            ->method('sendEvent')
             ->with('the-topic', ['topic' => 'the-topic'])
         ;
 
-        $job = new EnqueueResponseJob($rpc);
+        $job = new EnqueueResponseJob($producer);
         $trigger = new SimpleTrigger();
         $trigger->setJobDataMap(['topic' => 'the-topic']);
 
@@ -66,11 +59,31 @@ class EnqueueResponseJobTest extends TestCase
         $this->assertFalse($context->isUnscheduleFiringTrigger());
     }
 
-    /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|RpcClient
-     */
-    private function createRpcClientMock()
+    public function testShouldSendCommand()
     {
-        return $this->createMock(RpcClient::class);
+        $producer = $this->createProducerMock();
+        $producer
+            ->expects($this->once())
+            ->method('sendCommand')
+            ->with('the-command', ['command' => 'the-command'])
+        ;
+
+        $job = new EnqueueResponseJob($producer);
+        $trigger = new SimpleTrigger();
+        $trigger->setJobDataMap(['command' => 'the-command']);
+
+        $context = new JobExecutionContext($this->createMock(Scheduler::class), $trigger, new JobDetail());
+
+        $job->execute($context);
+
+        $this->assertFalse($context->isUnscheduleFiringTrigger());
+    }
+
+    /**
+     * @return \PHPUnit_Framework_MockObject_MockObject|ProducerV2Interface
+     */
+    private function createProducerMock()
+    {
+        return $this->createMock(ProducerV2Interface::class);
     }
 }

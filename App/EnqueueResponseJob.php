@@ -1,45 +1,23 @@
 <?php
 namespace Quartz\App;
 
-use Enqueue\Client\RpcClient;
+use Enqueue\Client\ProducerV2Interface;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 
 class EnqueueResponseJob implements Job
 {
     /**
-     * @var RpcClient
+     * @var ProducerV2Interface
      */
-    private $rpcClient;
+    private $producer;
 
     /**
-     * @var int msec
+     * @param ProducerV2Interface $producer
      */
-    private $timeout;
-
-    /**
-     * @param RpcClient $rpcClient
-     */
-    public function __construct(RpcClient $rpcClient)
+    public function __construct(ProducerV2Interface $producer)
     {
-        $this->rpcClient = $rpcClient;
-        $this->timeout = 5000;
-    }
-
-    /**
-     * @param int $timeout msec
-     */
-    public function setTimeout($timeout)
-    {
-        $this->timeout = (int) $timeout;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTimeout()
-    {
-        return $this->timeout;
+        $this->producer = $producer;
     }
 
     /**
@@ -49,14 +27,15 @@ class EnqueueResponseJob implements Job
     {
         $data = $context->getMergedJobDataMap();
 
-        if (empty($data['topic'])) {
-            $context->getTrigger()->setErrorMessage('There is no enqueue topic');
-
+        if (false == empty($data['topic'])) {
+            $this->producer->sendEvent($data['topic'], $data);
+        } elseif (false == empty($data['command'])) {
+            $this->producer->sendCommand($data['command'], $data);
+        } else {
+            $context->getTrigger()->setErrorMessage('There is no enqueue topic or command');
             $context->setUnscheduleFiringTrigger();
 
             return;
         }
-
-        $this->rpcClient->call($data['topic'], $data, $this->timeout);
     }
 }

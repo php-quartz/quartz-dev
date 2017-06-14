@@ -1,24 +1,24 @@
 <?php
 namespace Quartz\App\Async;
 
-use Enqueue\Client\ProducerInterface;
+use Enqueue\Client\ProducerV2Interface;
 use Quartz\Scheduler\JobRunShell;
 use Quartz\Core\Trigger;
 use Quartz\Scheduler\StdScheduler;
 
 class AsyncJobRunShell implements JobRunShell
 {
-    const TOPIC = 'quartz.job_run_shell';
+    const COMMAND = 'quartz.job_run_shell';
 
     /**
-     * @var ProducerInterface
+     * @var ProducerV2Interface
      */
     private $producer;
 
     /**
-     * @param ProducerInterface $producer
+     * @param ProducerV2Interface $producer
      */
-    public function __construct(ProducerInterface $producer)
+    public function __construct(ProducerV2Interface $producer)
     {
         $this->producer = $producer;
     }
@@ -35,8 +35,8 @@ class AsyncJobRunShell implements JobRunShell
      */
     public function execute(Trigger $trigger)
     {
-        $this->producer->send(self::TOPIC, [
+        $this->producer->sendCommand(self::COMMAND, [
             'fireInstanceId' => $trigger->getFireInstanceId(),
-        ]);
+        ], false);
     }
 }
