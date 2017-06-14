@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\App;
 
+use Enqueue\Client\RpcClient;
 use Enqueue\SimpleClient\SimpleClient;
 use Quartz\App\Async\AsyncJobRunShell;
 use Quartz\App\Async\JobRunShellProcessor;
@@ -90,7 +91,8 @@ class SchedulerFactory implements BaseSchedulerFactory
     public function getJobFactory()
     {
         if (null == $this->jobFactory) {
-            $job = new EnqueueResponseJob($this->getEnqueue()->getProducer());
+            $rpcClient = new RpcClient($this->getEnqueue()->getProducer(), $this->getEnqueue()->getContext());
+            $job = new EnqueueResponseJob($rpcClient);
 
             $this->jobFactory = new SimpleJobFactory([
                 EnqueueResponseJob::class => $job,

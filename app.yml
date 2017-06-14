@@ -3,7 +3,7 @@ services:
   scheduler:
     image: 'formapro/nginx-php-fpm:latest-all-exts'
     working_dir: '/app/App'
-#    entrypoint: 'php bin/quartz.php scheduler --setup -vvv'
+    entrypoint: 'php bin/quartz.php scheduler --setup -vvv'
     restart: 'on-failure'
     depends_on:
       - 'mongo'
@@ -26,7 +26,7 @@ services:
   worker:
     image: 'formapro/nginx-php-fpm:latest-all-exts'
     working_dir: '/app/App'
-#    entrypoint: 'php bin/quartz.php worker -vvv'
+    entrypoint: 'php bin/quartz.php worker -vvv'
     restart: 'on-failure'
     depends_on:
       - 'mongo'

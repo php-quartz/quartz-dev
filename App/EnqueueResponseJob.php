@@ -1,23 +1,24 @@
 <?php
 namespace Quartz\App;
 
-use Enqueue\Client\ProducerInterface;
+use Enqueue\Client\RpcClient;
+use Enqueue\Rpc\TimeoutException;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 
 class EnqueueResponseJob implements Job
 {
     /**
-     * @var ProducerInterface
+     * @var RpcClient
      */
-    private $producer;
+    private $rpcClient;
 
     /**
-     * @param ProducerInterface $producer
+     * @param RpcClient $rpcClient
      */
-    public function __construct(ProducerInterface $producer)
+    public function __construct(RpcClient $rpcClient)
     {
-        $this->producer = $producer;
+        $this->rpcClient = $rpcClient;
     }
 
     /**
@@ -35,6 +36,10 @@ class EnqueueResponseJob implements Job
             return;
         }
 
-        $this->producer->send($data['topic'], $data);
+        try {
+            $this->rpcClient->call($data['topic'], $data, 5000);
+        } catch (TimeoutException $e) {
+            // TODO: handle error statuses
+        }
     }
 }
