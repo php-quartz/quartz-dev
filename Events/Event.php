@@ -204,7 +204,47 @@ class Event extends BaseEvent
      */
     const SCHEDULER_STARTING = 'scheduler_starting';
 
-//
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> on every loop cycle
+     * </p>
+     */
+    const SCHEDULER_TICK = 'scheduler_tick';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> when a serious error has
+     * occurred within the scheduler - such as repeated failures in the <code>JobStore</code>,
+     * or the inability to instantiate a <code>Job</code> instance when its
+     * <code>Trigger</code> has fired.
+     * </p>
+     *
+     * <p>
+     * The <code>getErrorCode()</code> method of the given SchedulerException
+     * can be used to determine more specific information about the type of
+     * error that was encountered.
+     * </p>
+     *
+     * @param ErrorEvent($message, $exception)
+     */
+    const SCHEDULER_ERROR = 'scheduler_error';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> to inform the listener
+     * that it has shutdown.
+     * </p>
+     */
+    const SCHEDULER_SHUTDOWN = 'scheduler_shutdown';
+
+    /**
+     * <p>
+     * Called by the <code>{@link Scheduler}</code> to inform the listener
+     * that it has begun the shutdown sequence.
+     * </p>
+     */
+    const SCHEDULER_SHUTTINGDOWN = 'scheduler_shuttingdown';
+
 //    /**
 //     * <p>
 //     * Called by the <code>{@link Scheduler}</code> when a
@@ -225,40 +265,9 @@ class Event extends BaseEvent
 //
 //    /**
 //     * <p>
-//     * Called by the <code>{@link Scheduler}</code> when a serious error has
-//     * occurred within the scheduler - such as repeated failures in the <code>JobStore</code>,
-//     * or the inability to instantiate a <code>Job</code> instance when its
-//     * <code>Trigger</code> has fired.
-//     * </p>
-//     *
-//     * <p>
-//     * The <code>getErrorCode()</code> method of the given SchedulerException
-//     * can be used to determine more specific information about the type of
-//     * error that was encountered.
-//     * </p>
-//     */
-//    void schedulerError(String msg, SchedulerException cause);
-//
-//    /**
-//     * <p>
 //     * Called by the <code>{@link Scheduler}</code> to inform the listener
 //     * that it has move to standby mode.
 //     * </p>
 //     */
 //    void schedulerInStandbyMode();
-//    /**
-//     * <p>
-//     * Called by the <code>{@link Scheduler}</code> to inform the listener
-//     * that it has shutdown.
-//     * </p>
-//     */
-//    void schedulerShutdown();
-//
-//    /**
-//     * <p>
-//     * Called by the <code>{@link Scheduler}</code> to inform the listener
-//     * that it has begun the shutdown sequence.
-//     * </p>
-//     */
-//    void schedulerShuttingdown();
 }

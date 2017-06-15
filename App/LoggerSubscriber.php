@@ -31,6 +31,16 @@ class LoggerSubscriber implements EventSubscriberInterface
         $this->debug('Scheduler started');
     }
 
+    public function schedulerShuttingdown()
+    {
+        $this->debug('Scheduler shutting down');
+    }
+
+    public function schedulerShutdown()
+    {
+        $this->debug('Scheduler shutdown');
+    }
+
     public function jobToBeExecuted(JobExecutionContextEvent $event)
     {
         $this->debug(sprintf('Job to be executed: "%s"', (string) $event->getContext()->getJobDetail()->getKey()));
@@ -70,6 +80,8 @@ class LoggerSubscriber implements EventSubscriberInterface
         return [
             Event::SCHEDULER_STARTING => 'schedulerStarting',
             Event::SCHEDULER_STARTED => 'schedulerStarted',
+            Event::SCHEDULER_SHUTTINGDOWN => 'schedulerShuttingdown',
+            Event::SCHEDULER_SHUTDOWN => 'schedulerShutdown',
             Event::JOB_TO_BE_EXECUTED => 'jobToBeExecuted',
             Event::JOB_WAS_EXECUTED => 'jobWasExecuted',
             Event::JOB_EXECUTION_VETOED => 'jobExecutionVetoed',

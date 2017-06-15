@@ -3,6 +3,7 @@ namespace Quartz\App\Console;
 
 use Quartz\App\LoggerSubscriber;
 use Quartz\App\SchedulerFactory;
+use Quartz\App\SignalSubscriber;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -44,6 +45,7 @@ class SchedulerCommand extends Command
         $scheduler = $this->factory->getScheduler();
         $logger = new LoggerSubscriber(new ConsoleLogger($output));
         $scheduler->getEventDispatcher()->addSubscriber($logger);
+        $scheduler->getEventDispatcher()->addSubscriber(new SignalSubscriber());
 
         $scheduler->start();
     }

@@ -10,11 +10,13 @@ use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerException;
 use Quartz\Core\Trigger;
 use Quartz\Core\TriggerBuilder;
+use Quartz\Events\ErrorEvent;
 use Quartz\Events\Event;
 use Quartz\Events\GroupsEvent;
 use Quartz\Events\JobDetailEvent;
 use Quartz\Events\JobExecutionContextEvent;
 use Quartz\Events\KeyEvent;
+use Quartz\Events\TickEvent;
 use Quartz\Events\TriggerEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -75,15 +77,40 @@ class StdScheduler implements Scheduler
         $this->store->schedulerStarted();
         $this->notifySchedulerListenersStarted();
 
+        $error = 0;
         while (true) {
             $execStart = time();
-            if ($triggers = $this->store->acquireNextTriggers($execStart + $this->timeWindow, $this->maxCount, 0)) {
-                $firedTriggers = $this->store->triggersFired($triggers, $execStart + $this->sleepTime);
+            if ($this->notifySchedulerListenersTick()) {
+                // execution interrupted
+                $this->notifySchedulerListenersShuttingdown();
 
-                foreach ($firedTriggers as $firedTrigger) {
-                    $jobRunShell = $this->jobRunShellFactory->createJobRunShell($firedTrigger);
-                    $jobRunShell->initialize($this);
-                    $jobRunShell->execute($firedTrigger);
+                break;
+            }
+
+            try {
+                if ($triggers = $this->store->acquireNextTriggers($execStart + $this->timeWindow, $this->maxCount, 0)) {
+                    $firedTriggers = $this->store->triggersFired($triggers, $execStart + $this->sleepTime);
+
+                    foreach ($firedTriggers as $firedTrigger) {
+                        $jobRunShell = $this->jobRunShellFactory->createJobRunShell($firedTrigger);
+                        $jobRunShell->initialize($this);
+                        $jobRunShell->execute($firedTrigger);
+                    }
+                }
+
+                $error = 0;
+            } catch (SchedulerException $e) {
+                if ($error < PHP_INT_MAX) {
+                    $error++;
+                }
+
+                if ($this->notifySchedulerListenersError('An error occurred while handling next trigger', $error, $e)) {
+                    try {
+                        $this->notifySchedulerListenersShuttingdown();
+                        // scheduler is in error state, try to catch all exceptions to shut it down
+                    } catch (\Exception $e) {}
+
+                    break;
                 }
             }
             $execEnd = time();
@@ -93,6 +120,8 @@ class StdScheduler implements Scheduler
                 sleep($remainingWaitTime);
             }
         }
+
+        $this->notifySchedulerListenersShutdown();
     }
 
     /**
@@ -179,6 +208,46 @@ class StdScheduler implements Scheduler
     public function notifySchedulerListenersStarting()
     {
         $this->notify(Event::SCHEDULER_STARTING, new Event());
+    }
+
+    public function notifySchedulerListenersShuttingdown()
+    {
+        $this->notify(Event::SCHEDULER_SHUTTINGDOWN, new Event());
+    }
+
+    public function notifySchedulerListenersShutdown()
+    {
+        $this->notify(Event::SCHEDULER_SHUTDOWN, new Event());
+    }
+
+    /**
+     * @return bool execution interrupted
+     */
+    public function notifySchedulerListenersTick()
+    {
+        $this->notify(Event::SCHEDULER_TICK, $event = new TickEvent());
+
+        return $event->isInterrupted();
+    }
+
+    /**
+     * @param string             $message
+     * @param int                $errorCount
+     * @param SchedulerException $exception
+     *
+     * @return bool execution interrupted
+     */
+    public function notifySchedulerListenersError($message, $errorCount, SchedulerException $exception = null)
+    {
+        try {
+            $this->notify(Event::SCHEDULER_ERROR, $event = new ErrorEvent($message, $errorCount, $exception));
+
+            return $event->isInterrupted();
+        } catch (\Exception $e) {
+            // log error somehow
+        }
+
+        return false;
     }
 
     ///////////////////////////////////////////////////////////////////////////
