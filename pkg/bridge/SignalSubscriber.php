@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge;
 
 use Quartz\Core\SchedulerException;
 use Quartz\Events\Event;

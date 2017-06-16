@@ -1,12 +1,15 @@
 <?php
+
 use function Makasim\Values\register_cast_hooks;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
-use Quartz\Core\Scheduler;
 use Quartz\Core\SimpleJobFactory;
+use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
+use Quartz\Scheduler\StdScheduler;
 use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;;
+use Quartz\Scheduler\Store\YadmStoreResource;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 require_once '../vendor/autoload.php';
 
@@ -28,5 +31,5 @@ class MyJob implements Job
     }
 }
 
-$scheduler = new Scheduler($store, new StdJobRunShellFactory(), new SimpleJobFactory());
+$scheduler = new StdScheduler($store, new StdJobRunShellFactory(new StdJobRunShell()), new SimpleJobFactory(), new EventDispatcher());
 $scheduler->start();

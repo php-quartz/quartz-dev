@@ -1,8 +1,8 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\SimpleClient\SimpleClient;
-use Quartz\App\Async\AsyncJobRunShell;
+use Quartz\App\Async\EnqueueJobRunShell;
 use Quartz\App\Async\JobRunShellProcessor;
 use Quartz\Scheduler\JobRunShellFactory;
 use Quartz\Core\Scheduler;
@@ -82,7 +82,7 @@ class SchedulerFactory implements BaseSchedulerFactory
     public function getJobRunShellFactory()
     {
         if (null == $this->jobRunShellFactory) {
-            $runJobShell = new AsyncJobRunShell($this->getEnqueue()->getProducerV2());
+            $runJobShell = new EnqueueJobRunShell($this->getEnqueue()->getProducerV2());
             $this->jobRunShellFactory = new StdJobRunShellFactory($runJobShell);
         }
 

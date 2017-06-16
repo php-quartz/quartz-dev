@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge\Enqueue;
 
 use Enqueue\Client\ProducerV2Interface;
 use Quartz\Core\Job;

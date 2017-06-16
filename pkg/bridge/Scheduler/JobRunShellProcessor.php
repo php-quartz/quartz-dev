@@ -1,6 +1,7 @@
 <?php
-namespace Quartz\App\Async;
+namespace Quartz\Bridge\Scheduler;
 
+use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrMessage;
@@ -9,7 +10,7 @@ use Enqueue\Util\JSON;
 use Quartz\Scheduler\JobStore;
 use Quartz\Scheduler\StdJobRunShell;
 
-class JobRunShellProcessor implements PsrProcessor
+class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface
 {
     /**
      * @var JobStore
@@ -49,5 +50,13 @@ class JobRunShellProcessor implements PsrProcessor
         $this->runShell->execute($trigger);
 
         return Result::ACK;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedCommand()
+    {
+        return EnqueueJobRunShell::COMMAND;
     }
 }

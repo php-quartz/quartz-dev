@@ -1,6 +1,7 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge\Scheduler;
 
+use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrMessage;
@@ -8,7 +9,7 @@ use Enqueue\Psr\PsrProcessor;
 use Enqueue\Util\JSON;
 use Quartz\Core\Scheduler;
 
-class RemoteSchedulerProcessor implements PsrProcessor
+class RemoteSchedulerProcessor implements PsrProcessor, CommandSubscriberInterface
 {
     /**
      * @var Scheduler
@@ -45,5 +46,13 @@ class RemoteSchedulerProcessor implements PsrProcessor
         }
 
         return Result::reply($context->createMessage(JSON::encode($result)));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedCommand()
+    {
+        return RemoteScheduler::COMMAND;
     }
 }

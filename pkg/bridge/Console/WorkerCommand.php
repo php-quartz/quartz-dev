@@ -7,7 +7,7 @@ use Enqueue\Consumption\Extension\ReplyExtension;
 use Quartz\App\LoggerSubscriber;
 use Quartz\App\RemoteScheduler;
 use Quartz\App\SchedulerFactory;
-use Quartz\App\Async\AsyncJobRunShell;
+use Quartz\App\Async\EnqueueJobRunShell;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Logger\ConsoleLogger;
@@ -21,13 +21,13 @@ class WorkerCommand extends Command
     private $factory;
 
     /**
-     * @param SchedulerFactory $factory
+     * @param SchedulerFactory $scheduler
      */
-    public function __construct(SchedulerFactory $factory)
+    public function __construct(SchedulerFactory $scheduler)
     {
         parent::__construct('worker');
 
-        $this->factory = $factory;
+        $this->factory = $scheduler;
     }
 
     /**
@@ -42,7 +42,7 @@ class WorkerCommand extends Command
         $scheduler->getEventDispatcher()->addSubscriber($logger);
 
         $jobRunShell = $this->factory->getJobRunShellProcessor();
-        $enqueue->bind(AsyncJobRunShell::COMMAND, AsyncJobRunShell::COMMAND, function($message, $context) use ($jobRunShell) {
+        $enqueue->bind(EnqueueJobRunShell::COMMAND, EnqueueJobRunShell::COMMAND, function($message, $context) use ($jobRunShell) {
             return $jobRunShell->process($message, $context);
         });
 

@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\Client\ProducerV2Interface;
 use Enqueue\Util\JSON;

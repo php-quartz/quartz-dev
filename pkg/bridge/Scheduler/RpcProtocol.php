@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge\Scheduler;
 
 use function Makasim\Values\get_values;
 use function Makasim\Values\set_values;

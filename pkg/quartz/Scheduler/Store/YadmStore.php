@@ -54,6 +54,26 @@ class YadmStore implements JobStore
     }
 
     /**
+     * @return int
+     */
+    public function getMisfireThreshold()
+    {
+        return $this->misfireThreshold;
+    }
+
+    /**
+     * @param int $misfireThreshold
+     */
+    public function setMisfireThreshold($misfireThreshold)
+    {
+        if (false == is_int($misfireThreshold)) {
+            throw new \InvalidArgumentException('Expected misfire threshold is int');
+        }
+
+        $this->misfireThreshold = $misfireThreshold;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function storeJobAndTrigger(JobDetail $newJob, Trigger $newTrigger)

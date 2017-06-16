@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App;
+namespace Quartz\Bridge;
 
 use Psr\Log\LoggerInterface;
 use Quartz\Events\Event;

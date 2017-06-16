@@ -1,17 +1,18 @@
 <?php
+
 use function Makasim\Values\register_cast_hooks;
-use Quartz\App\SchedulerFactory;
-use Quartz\Core\CalendarIntervalScheduleBuilder;
 use Quartz\Core\DailyTimeIntervalScheduleBuilder;
 use Quartz\Core\Job;
 use Quartz\Core\JobBuilder;
 use Quartz\Core\JobExecutionContext;
-use Quartz\Core\Scheduler;
 use Quartz\Core\SimpleJobFactory;
+use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Core\TriggerBuilder;
+use Quartz\Scheduler\StdScheduler;
 use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;;
+use Quartz\Scheduler\Store\YadmStoreResource;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $dir = realpath(dirname($_SERVER['PHP_SELF']));
 $loader = require $dir.'/../vendor/autoload.php';
@@ -31,9 +32,7 @@ class MyJob implements Job
     }
 }
 
-$job = JobBuilder::newJob()
-    ->ofType(DebugJob::class)
-    ->build();
+$job = JobBuilder::newJob(MyJob::class)->build();
 
 $trigger = TriggerBuilder::newTrigger()
     ->forJobDetail($job)
@@ -41,8 +40,8 @@ $trigger = TriggerBuilder::newTrigger()
     ->withSchedule(DailyTimeIntervalScheduleBuilder::dailyTimeIntervalSchedule()->withIntervalInSeconds(10))
     ->build();
 
-$scheduler = (new SchedulerFactory())->getScheduler();
-$scheduler->scheduleJob($trigger, $job);
+$store = new YadmStore(new YadmStoreResource($config));
+$store->clearAllSchedulingData();
 
-//$scheduler = new Scheduler(new YadmStore(new YadmStoreResource($config)), new StdJobRunShellFactory(), new SimpleJobFactory());
-//$scheduler->scheduleJob($trigger, $job);
+$scheduler = new StdScheduler($store, new StdJobRunShellFactory(new StdJobRunShell()), new SimpleJobFactory(), new EventDispatcher());
+$scheduler->scheduleJob($trigger, $job);

@@ -1,12 +1,12 @@
 <?php
-namespace Quartz\App\Async;
+namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\Client\ProducerV2Interface;
 use Quartz\Scheduler\JobRunShell;
 use Quartz\Core\Trigger;
 use Quartz\Scheduler\StdScheduler;
 
-class AsyncJobRunShell implements JobRunShell
+class EnqueueJobRunShell implements JobRunShell
 {
     const COMMAND = 'quartz.job_run_shell';
 
