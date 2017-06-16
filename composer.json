@@ -1,38 +1,23 @@
 {
-    "name": "formapro/php-quartz",
-    "type": "library",
-    "description": "Job Time Scheduler Library",
+    "name": "formapro/php-quartz-dev",
+    "type": "project",
+    "minimum-stability": "dev",
+    "description": "PHP Job Time Scheduler Project",
     "keywords": ["job", "time", "task", "time scheduler", "quartz", "chrono"],
     "license": "MIT",
-    "require": {
-        "php": ">=5.6",
-        "ramsey/uuid": "^2|^3.5",
-        "makasim/yadm": "*@dev",
-        "g4/cron": "^0.1",
-        "symfony/event-dispatcher": "^2.8|^3.0",
 
-        "symfony/console": "^2.8|^3",
-        "symfony/config": "^2.8|^3",
-        "enqueue/enqueue": "^0.3|^0.4",
-        "enqueue/simple-client": "^0.3|^0.4",
-        "enqueue/amqp-ext": "^0.3|^0.4"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "~5.5"
-    },
-    "autoload": {
-        "psr-4": { "Quartz\\": "" },
-        "exclude-from-classmap": [
-            "/Tests/"
-        ]
-    },
-    "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1.x-dev"
-        }
-    },
     "config": {
         "bin-dir": "bin"
-    }
+    },
+    "require": {
+        "php": ">=5.6",
+        "formapro/php-quartz": "*@dev",
+        "phpunit/phpunit": "~5.5"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "pkg/quartz"
+        }
+    ]
 }

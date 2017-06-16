@@ -13,8 +13,8 @@
         >
 
     <testsuites>
-        <testsuite name="quartz">
-            <directory>pkg/quartz/Tests</directory>
+        <testsuite name="Test Suite">
+            <directory>./Tests</directory>
         </testsuite>
     </testsuites>
 
