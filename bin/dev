@@ -26,6 +26,9 @@ while getopts "busdtef" OPTION; do
     t)
       COMPOSE_PROJECT_NAME=quartz docker-compose run --workdir="/app" --rm app ./bin/test "$2"
       ;;
+    c)
+      COMPOSE_PROJECT_NAME=quartz docker-compose run -e CHANGELOG_GITHUB_TOKEN=${CHANGELOG_GITHUB_TOKEN:-""} --workdir="/app" --rm generate-changelog github_changelog_generator --future-release "$2" --simple-list
+      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1

@@ -21,3 +21,8 @@ services:
     restart: 'on-failure'
     ports:
       - '27017:27017'
+
+  generate-changelog:
+    image: enqueue/generate-changelog:latest
+    volumes:
+      - './:/app:cached'
