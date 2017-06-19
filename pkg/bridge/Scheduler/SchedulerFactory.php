@@ -2,12 +2,11 @@
 namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\SimpleClient\SimpleClient;
-use Quartz\App\Async\EnqueueJobRunShell;
-use Quartz\App\Async\JobRunShellProcessor;
-use Quartz\Scheduler\JobRunShellFactory;
+use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerFactory as BaseSchedulerFactory;
 use Quartz\Core\SimpleJobFactory;
+use Quartz\Scheduler\JobRunShellFactory;
 use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Scheduler\StdScheduler;

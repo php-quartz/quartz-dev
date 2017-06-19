@@ -2,8 +2,8 @@ version: '3'
 services:
   scheduler:
     image: 'formapro/nginx-php-fpm:latest-all-exts'
-    working_dir: '/app/App'
-    entrypoint: 'php bin/quartz.php scheduler --setup -vvv'
+    working_dir: '/app'
+#    entrypoint: 'bin/console scheduler -vvv'
     restart: 'on-failure'
     depends_on:
       - 'mongo'
@@ -25,8 +25,8 @@ services:
 
   worker:
     image: 'formapro/nginx-php-fpm:latest-all-exts'
-    working_dir: '/app/App'
-    entrypoint: 'php bin/quartz.php worker -vvv'
+    working_dir: '/app'
+#    entrypoint: 'bin/console enqueue:consume -vvv'
     restart: 'on-failure'
     depends_on:
       - 'mongo'

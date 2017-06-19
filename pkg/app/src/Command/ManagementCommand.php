@@ -1,7 +1,7 @@
 <?php
-namespace Quartz\App\Console;
+namespace Quartz\App\Command;
 
-use Quartz\App\SchedulerFactory;
+use Quartz\Scheduler\StdScheduler;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -11,18 +11,18 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 class ManagementCommand extends Command
 {
     /**
-     * @var SchedulerFactory
+     * @var StdScheduler
      */
-    private $factory;
+    private $scheduler;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(SchedulerFactory $factory)
+    public function __construct(StdScheduler $scheduler)
     {
-        parent::__construct('manage');
+        parent::__construct('quartz:manage');
 
-        $this->factory = $factory;
+        $this->scheduler = $scheduler;
     }
 
     /**
@@ -33,7 +33,6 @@ class ManagementCommand extends Command
         $this
             ->addOption('clear-all', null, InputOption::VALUE_NONE, 'Clears (deletes!) all scheduling data - all Jobs, Triggers, Calendars.')
             ->addOption('create-indexes', null, InputOption::VALUE_NONE, 'Creates all required storage indexes')
-            ->addOption('create-queues', null, InputOption::VALUE_NONE, 'Creates all required queues')
         ;
     }
 
@@ -42,25 +41,18 @@ class ManagementCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $scheduler = $this->factory->getScheduler();
-
         if ($input->getOption('clear-all')) {
             $helper = $this->getHelper('question');
             $question = new ConfirmationQuestion('You are just about to delete all storage data. Are you sure? ', false, '/^(y|j)/i');
 
             if ($helper->ask($input, $output, $question)) {
-                $scheduler->clear();
+                $this->scheduler->clear();
             }
         }
 
         if ($input->getOption('create-indexes')) {
             $output->writeln('Creating storage indexes');
-            $scheduler->getStore()->createIndexes(); // TODO: is not part of interface :(
-        }
-
-        if ($input->getOption('create-queues')) {
-            $output->writeln('Creating enqueue queues');
-            $this->factory->getEnqueue()->setupBroker();
+            $this->scheduler->getStore()->createIndexes(); // TODO: is not part of interface :(
         }
     }
 }

@@ -8,4 +8,4 @@ enqueue:
             pass: '%env(RABBITMQ_PASS)%'
             vhost: '%env(RABBITMQ_VHOST)%'
     client:
-        app: 'quartz'
+        app_name: 'quartz'

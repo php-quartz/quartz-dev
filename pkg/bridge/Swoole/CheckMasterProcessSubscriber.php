@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\Bridge;
+namespace Quartz\Bridge\Swoole;
 
 use Quartz\Core\SchedulerException;
 use Quartz\Events\Event;
