@@ -2,6 +2,8 @@
 namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\SimpleClient\SimpleClient;
+use Quartz\Bridge\Enqueue\EnqueueRemoteTransport;
+use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
 use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerFactory as BaseSchedulerFactory;
@@ -75,7 +77,9 @@ class SchedulerFactory implements BaseSchedulerFactory
 
     public function getRemoteScheduler()
     {
-        return new RemoteScheduler($this->getEnqueue()->getProducerV2(), new RpcProtocol());
+        $transport = new EnqueueRemoteTransport($this->getEnqueue()->getProducerV2());
+
+        return new RemoteScheduler($transport, new RpcProtocol());
     }
 
     public function getJobRunShellFactory()
@@ -116,11 +120,11 @@ class SchedulerFactory implements BaseSchedulerFactory
     }
 
     /**
-     * @return RemoteSchedulerProcessor
+     * @return EnqueueRemoteTransportProcessor
      */
     public function getRemoteSchedulerProcessor()
     {
-        return new RemoteSchedulerProcessor($this->getScheduler(), new RpcProtocol());
+        return new EnqueueRemoteTransportProcessor($this->getScheduler(), new RpcProtocol());
     }
 
     /**

@@ -1,8 +1,8 @@
 <?php
-namespace Quartz\Tests\App;
+namespace Quartz\Bridge\Tests\Scheduler;
 
 use PHPUnit\Framework\TestCase;
-use Quartz\App\RpcProtocol;
+use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\Key;
 use Quartz\Core\SchedulerException;
 use Quartz\JobDetail\JobDetail;

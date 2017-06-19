@@ -1,13 +1,10 @@
 <?php
-namespace Quartz\Tests\App;
+namespace Quartz\Bridge\Tests\Scheduler;
 
-use Enqueue\Client\ProducerV2Interface;
-use Enqueue\Null\NullMessage;
-use Enqueue\Rpc\Promise;
-use Enqueue\Util\JSON;
 use PHPUnit\Framework\TestCase;
-use Quartz\App\RemoteScheduler;
-use Quartz\App\RpcProtocol;
+use Quartz\Bridge\Scheduler\RemoteScheduler;
+use Quartz\Bridge\Scheduler\RemoteTransport;
+use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\SchedulerException;
 use Quartz\JobDetail\JobDetail;
 use Quartz\Triggers\SimpleTrigger;
@@ -19,24 +16,15 @@ class RemoteSchedulerTest extends TestCase
         $trigger = new SimpleTrigger();
         $job = new JobDetail();
 
-        $request = 'request';
+        $request = ['request'];
         $response = 'response';
 
-        $responseMessage = new NullMessage(JSON::encode(['key' => 'value']));
-
-        $promise = $this->createMock(Promise::class);
-        $promise
+        $transport = $this->createMock(RemoteTransport::class);
+        $transport
             ->expects($this->once())
-            ->method('receive')
-            ->willReturn($responseMessage)
-        ;
-
-        $producer = $this->createMock(ProducerV2Interface::class);
-        $producer
-            ->expects($this->once())
-            ->method('sendCommand')
-            ->with(RemoteScheduler::COMMAND, $request)
-            ->willReturn($promise)
+            ->method('request')
+            ->with($this->identicalTo($request))
+            ->willReturn(['key' => 'value'])
         ;
 
         $rpcProto = $this->createMock(RpcProtocol::class);
@@ -53,7 +41,7 @@ class RemoteSchedulerTest extends TestCase
             ->willReturn($response)
         ;
 
-        $scheduler = new RemoteScheduler($producer, $rpcProto);
+        $scheduler = new RemoteScheduler($transport, $rpcProto);
 
         $result = $scheduler->scheduleJob($trigger, $job);
 
@@ -65,32 +53,27 @@ class RemoteSchedulerTest extends TestCase
         $trigger = new SimpleTrigger();
         $job = new JobDetail();
 
-        $responseMessage = new NullMessage();
-
         $e = new SchedulerException('message');
 
-        $promise = $this->createMock(Promise::class);
-        $promise
+        $transport = $this->createMock(RemoteTransport::class);
+        $transport
             ->expects($this->once())
-            ->method('receive')
-            ->willReturn($responseMessage)
-        ;
-
-        $producer = $this->createMock(ProducerV2Interface::class);
-        $producer
-            ->expects($this->once())
-            ->method('sendCommand')
-            ->willReturn($promise)
+            ->method('request')
         ;
 
         $rpcProto = $this->createMock(RpcProtocol::class);
+        $rpcProto
+            ->expects($this->once())
+            ->method('encodeRequest')
+            ->willReturn([])
+        ;
         $rpcProto
             ->expects($this->once())
             ->method('decodeValue')
             ->willReturn($e)
         ;
 
-        $scheduler = new RemoteScheduler($producer, $rpcProto);
+        $scheduler = new RemoteScheduler($transport, $rpcProto);
 
         $this->expectException(SchedulerException::class);
         $this->expectExceptionMessage('message');

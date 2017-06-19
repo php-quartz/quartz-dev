@@ -1,9 +1,9 @@
 <?php
-namespace Quartz\Tests\App;
+namespace Quartz\Bridge\Tests\Enqueue;
 
 use Enqueue\Client\ProducerV2Interface;
 use PHPUnit\Framework\TestCase;
-use Quartz\App\EnqueueResponseJob;
+use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 use Quartz\Core\Scheduler;

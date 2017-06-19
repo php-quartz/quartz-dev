@@ -1,21 +1,22 @@
 <?php
-namespace Quartz\Tests\App;
+namespace Quartz\Bridge\Tests\Enqueue;
 
 use Enqueue\Consumption\Result;
 use Enqueue\Null\NullMessage;
 use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrProcessor;
-use Quartz\App\RemoteSchedulerProcessor;
-use Quartz\App\RpcProtocol;
+use PHPUnit\Framework\TestCase;
+use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
+use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\Scheduler;
 use Quartz\JobDetail\JobDetail;
 use Quartz\Triggers\SimpleTrigger;
 
-class RemoteSchedulerProcessorTest extends \PHPUnit_Framework_TestCase
+class EnqueueRemoteTransportProcessorTest extends TestCase
 {
     public function testShouldImpleentPsrProcessorInterface()
     {
-        $processor = new RemoteSchedulerProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
+        $processor = new EnqueueRemoteTransportProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
 
         $this->assertInstanceOf(PsrProcessor::class, $processor);
     }
@@ -57,7 +58,7 @@ class RemoteSchedulerProcessorTest extends \PHPUnit_Framework_TestCase
             ->willReturn(new NullMessage('result'))
         ;
 
-        $processor = new RemoteSchedulerProcessor($scheduler, $proto);
+        $processor = new EnqueueRemoteTransportProcessor($scheduler, $proto);
         $result = $processor->process($message, $context);
 
         $this->assertInstanceOf(Result::class, $result);
@@ -104,7 +105,7 @@ class RemoteSchedulerProcessorTest extends \PHPUnit_Framework_TestCase
             ->willReturn(new NullMessage('result'))
         ;
 
-        $processor = new RemoteSchedulerProcessor($scheduler, $proto);
+        $processor = new EnqueueRemoteTransportProcessor($scheduler, $proto);
         $result = $processor->process($message, $context);
 
         $this->assertInstanceOf(Result::class, $result);

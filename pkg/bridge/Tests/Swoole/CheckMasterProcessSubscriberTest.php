@@ -1,8 +1,8 @@
 <?php
-namespace Quartz\Tests\App;
+namespace Quartz\Bridge\Tests\Swoole;
 
 use PHPUnit\Framework\TestCase;
-use Quartz\App\CheckMasterProcessSubscriber;
+use Quartz\Bridge\Swoole\CheckMasterProcessSubscriber;
 use Quartz\Core\SchedulerException;
 use Quartz\Events\Event;
 use Quartz\Events\TickEvent;

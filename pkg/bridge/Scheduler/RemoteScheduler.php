@@ -1,8 +1,6 @@
 <?php
 namespace Quartz\Bridge\Scheduler;
 
-use Enqueue\Client\ProducerV2Interface;
-use Enqueue\Util\JSON;
 use Quartz\Core\Calendar;
 use Quartz\Core\JobDetail;
 use Quartz\Core\Key;
@@ -11,12 +9,10 @@ use Quartz\Core\Trigger;
 
 class RemoteScheduler implements Scheduler
 {
-    const COMMAND = 'quartz.rpc';
-
     /**
-     * @var ProducerV2Interface
+     * @var RemoteTransport
      */
-    private $producer;
+    private $transport;
 
     /**
      * @var RpcProtocol
@@ -24,12 +20,12 @@ class RemoteScheduler implements Scheduler
     private $rpcProtocol;
 
     /**
-     * @param ProducerV2Interface $producer
-     * @param RpcProtocol         $rpcProtocol
+     * @param RemoteTransport $transport
+     * @param RpcProtocol     $rpcProtocol
      */
-    public function __construct(ProducerV2Interface $producer, RpcProtocol $rpcProtocol)
+    public function __construct(RemoteTransport $transport, RpcProtocol $rpcProtocol)
     {
-        $this->producer = $producer;
+        $this->transport = $transport;
         $this->rpcProtocol = $rpcProtocol;
     }
 
@@ -45,9 +41,9 @@ class RemoteScheduler implements Scheduler
     {
         $request = $this->rpcProtocol->encodeRequest($method, $args);
 
-        $responseMessage = $this->producer->sendCommand(self::COMMAND, $request, true)->receive();
+        $response = $this->transport->request($request);
 
-        $response = $this->rpcProtocol->decodeValue(JSON::decode($responseMessage->getBody()));
+        $response = $this->rpcProtocol->decodeValue($response);
 
         if ($response instanceof \Exception) {
             throw $response;

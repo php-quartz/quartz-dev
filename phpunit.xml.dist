@@ -16,6 +16,12 @@
         <testsuite name="quartz">
             <directory>pkg/quartz/Tests</directory>
         </testsuite>
+        <testsuite name="bridge">
+            <directory>pkg/bridge/Tests</directory>
+        </testsuite>
+        <testsuite name="app">
+            <directory>pkg/app/tests</directory>
+        </testsuite>
     </testsuites>
 
     <filter>

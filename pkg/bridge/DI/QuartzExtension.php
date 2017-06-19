@@ -1,10 +1,10 @@
 <?php
 namespace Quartz\Bridge\DI;
 
+use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
 use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Bridge\Scheduler\EnqueueJobRunShell;
 use Quartz\Bridge\Scheduler\JobRunShellProcessor;
-use Quartz\Bridge\Scheduler\RemoteSchedulerProcessor;
 use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\SimpleJobFactory;
 use Quartz\Scheduler\StdJobRunShell;
@@ -98,7 +98,7 @@ class QuartzExtension extends Extension
             ->setPublic(false)
         ;
 
-        $container->register($this->format('remote_scheduler_processor'), RemoteSchedulerProcessor::class)
+        $container->register($this->format('remote_transport_processor'), EnqueueRemoteTransportProcessor::class)
             ->setArguments([
                 new Reference($this->format('scheduler')),
                 new Reference($this->format('rpc_protocol'))
