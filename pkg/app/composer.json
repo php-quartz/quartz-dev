@@ -1,5 +1,5 @@
 {
-    "name": "formapro/php-quartz-app",
+    "name": "php-quartz/app",
     "type": "project",
     "license": "MIT",
     "description": "Job Time Scheduler App",

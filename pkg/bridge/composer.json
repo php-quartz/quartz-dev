@@ -1,5 +1,5 @@
 {
-    "name": "formapro/php-quartz-bridge",
+    "name": "php-quartz/bridge",
     "type": "library",
     "minimum-stability": "dev",
     "description": "Job Time Scheduler Library",

@@ -1,5 +1,5 @@
 {
-    "name": "formapro/php-quartz",
+    "name": "php-quartz/quartz",
     "type": "library",
     "minimum-stability": "dev",
     "description": "Job Time Scheduler Library",

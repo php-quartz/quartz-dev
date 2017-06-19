@@ -1,5 +1,5 @@
 {
-    "name": "formapro/php-quartz-dev",
+    "name": "php-quartz/quartz-dev",
     "type": "project",
     "minimum-stability": "dev",
     "description": "PHP Job Time Scheduler Project",
