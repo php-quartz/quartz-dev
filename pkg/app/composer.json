@@ -18,7 +18,8 @@
         "php-quartz/bridge": "@dev"
     },
     "require-dev": {
-        "symfony/dotenv": "^3.3"
+        "symfony/dotenv": "^3.3",
+        "phpunit/phpunit": "~5.5"
     },
     "config": {
         "preferred-install": {
