@@ -71,6 +71,7 @@ class QuartzExtension extends Extension
         $container->register($this->format('job.enqueue_response'), EnqueueResponseJob::class)
             ->setArguments([new Reference('enqueue.client.producer_v2')])
             ->addTag($this->format('job'), ['alias' => 'enqueue_response'])
+            ->addTag($this->format('job'), ['alias' => EnqueueResponseJob::class])
         ;
 
         $container->register($this->format('scheduler'), StdScheduler::class)

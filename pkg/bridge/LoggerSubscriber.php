@@ -2,6 +2,7 @@
 namespace Quartz\Bridge;
 
 use Psr\Log\LoggerInterface;
+use Quartz\Events\ErrorEvent;
 use Quartz\Events\Event;
 use Quartz\Events\JobExecutionContextEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -72,6 +73,15 @@ class LoggerSubscriber implements EventSubscriberInterface
             $previousFireTime, $scheduledFireTime, $nextFireTime));
     }
 
+    public function schedulerError(ErrorEvent $event)
+    {
+        $this->debug('Error: '.$event->getMessage());
+
+        if ($event->getException()) {
+            $this->debug($event->getException()->getMessage());
+        }
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -82,6 +92,7 @@ class LoggerSubscriber implements EventSubscriberInterface
             Event::SCHEDULER_STARTED => 'schedulerStarted',
             Event::SCHEDULER_SHUTTINGDOWN => 'schedulerShuttingdown',
             Event::SCHEDULER_SHUTDOWN => 'schedulerShutdown',
+            Event::SCHEDULER_ERROR => 'schedulerError',
             Event::JOB_TO_BE_EXECUTED => 'jobToBeExecuted',
             Event::JOB_WAS_EXECUTED => 'jobWasExecuted',
             Event::JOB_EXECUTION_VETOED => 'jobExecutionVetoed',

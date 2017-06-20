@@ -13,8 +13,9 @@
         "enqueue/enqueue": "^0.3|^0.4",
         "enqueue/amqp-ext": "^0.3|^0.4",
         "enqueue/enqueue-bundle": "^0.3|^0.4",
-        "formapro/php-quartz": "@dev",
-        "formapro/php-quartz-bridge": "@dev"
+        "makasim/yadm": "@dev",
+        "php-quartz/quartz": "@dev",
+        "php-quartz/bridge": "@dev"
     },
     "require-dev": {
         "symfony/dotenv": "^3.3"

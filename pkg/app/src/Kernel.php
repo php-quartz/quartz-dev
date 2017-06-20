@@ -2,6 +2,7 @@
 
 namespace Quartz\App;
 
+use function Makasim\Values\register_cast_hooks;
 use Quartz\Bridge\DI\QuartzExtension;
 use Quartz\Bridge\DI\QuartzJobCompilerPass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -18,6 +19,15 @@ final class Kernel extends BaseKernel
     use MicroKernelTrait;
 
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
+
+    public function boot()
+    {
+        if (false == $this->booted) {
+            register_cast_hooks();
+        }
+
+        parent::boot();
+    }
 
     public function getCacheDir(): string
     {
