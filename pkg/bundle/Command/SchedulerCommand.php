@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\App\Command;
+namespace Quartz\Bundle\Command;
 
 use Quartz\Bridge\LoggerSubscriber;
 use Quartz\Bridge\SignalSubscriber;

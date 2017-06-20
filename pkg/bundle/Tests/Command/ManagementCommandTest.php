@@ -1,8 +1,8 @@
 <?php
-namespace Quartz\App\Tests\Command;
+namespace Quartz\Bundle\Tests\Command;
 
 use PHPUnit\Framework\TestCase;
-use Quartz\App\Command\ManagementCommand;
+use Quartz\Bundle\Command\ManagementCommand;
 use Quartz\Scheduler\StdScheduler;
 use Quartz\Scheduler\Store\YadmStore;
 use Symfony\Component\Console\Command\Command;

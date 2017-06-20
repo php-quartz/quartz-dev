@@ -45,8 +45,10 @@ function remote()
 
 remote quartz git@github.com:php-quartz/quartz.git
 remote bridge git@github.com:php-quartz/bridge.git
+remote bundle git@github.com:php-quartz/bundle.git
 remote app git@github.com:php-quartz/app.git
 
 split 'pkg/quartz' quartz
 split 'pkg/bridge' bridge
+split 'pkg/bundle' bundle
 split 'pkg/app' app

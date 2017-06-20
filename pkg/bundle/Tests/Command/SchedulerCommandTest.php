@@ -1,8 +1,8 @@
 <?php
-namespace Quartz\App\Tests\Command;
+namespace Quartz\Bundle\Tests\Command;
 
 use PHPUnit\Framework\TestCase;
-use Quartz\App\Command\SchedulerCommand;
+use Quartz\Bundle\Command\SchedulerCommand;
 use Quartz\Bridge\LoggerSubscriber;
 use Quartz\Bridge\SignalSubscriber;
 use Quartz\Scheduler\StdScheduler;

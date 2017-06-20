@@ -14,7 +14,7 @@ fi
 
 CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
-for REMOTE in origin quartz bridge app
+for REMOTE in origin quartz bridge bundle app
 do
     echo ""
     echo ""

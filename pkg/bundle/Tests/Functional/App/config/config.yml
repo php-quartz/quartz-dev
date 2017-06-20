@@ -1,0 +1,27 @@
+parameters:
+    locale: 'en'
+    secret: 'ThisTokenIsNotSoSecretChangeIt'
+
+
+framework:
+    #esi:             ~
+    #translator:      { fallback: "%locale%" }
+    test: ~
+    assets: false
+    templating: false
+    session:
+        storage_id: session.storage.mock_file
+    secret:          '%secret%'
+    router:          { resource: '%kernel.root_dir%/config/routing.yml' }
+    default_locale:  '%locale%'
+
+enqueue:
+    transport:
+        default: 'null'
+        'null': ~
+    client:
+        traceable_producer: true
+
+quartz:
+    remote_scheduler: ~
+    scheduler: ~
