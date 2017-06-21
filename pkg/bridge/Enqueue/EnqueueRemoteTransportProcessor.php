@@ -2,6 +2,7 @@
 namespace Quartz\Bridge\Enqueue;
 
 use Enqueue\Client\CommandSubscriberInterface;
+use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrMessage;
@@ -10,7 +11,7 @@ use Enqueue\Util\JSON;
 use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\Scheduler;
 
-class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriberInterface
+class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriberInterface, QueueSubscriberInterface
 {
     /**
      * @var Scheduler
@@ -54,6 +55,19 @@ class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriber
      */
     public static function getSubscribedCommand()
     {
-        return EnqueueRemoteTransport::COMMAND;
+        return [
+            'processorName' => EnqueueRemoteTransport::COMMAND,
+            'queueName' => EnqueueRemoteTransport::COMMAND,
+            'queueNameHardcoded' => true,
+            'exclusive' => true,
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedQueues()
+    {
+        return [EnqueueRemoteTransport::COMMAND];
     }
 }

@@ -2,6 +2,7 @@
 namespace Quartz\Bridge\Scheduler;
 
 use Enqueue\Client\CommandSubscriberInterface;
+use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Psr\PsrContext;
 use Enqueue\Psr\PsrMessage;
@@ -10,7 +11,7 @@ use Enqueue\Util\JSON;
 use Quartz\Scheduler\JobStore;
 use Quartz\Scheduler\StdJobRunShell;
 
-class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface
+class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface, QueueSubscriberInterface
 {
     /**
      * @var JobStore
@@ -57,6 +58,19 @@ class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface
      */
     public static function getSubscribedCommand()
     {
-        return EnqueueJobRunShell::COMMAND;
+        return [
+            'processorName' => EnqueueJobRunShell::COMMAND,
+            'queueName' => EnqueueJobRunShell::COMMAND,
+            'queueNameHardcoded' => true,
+            'exclusive' => true,
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedQueues()
+    {
+        return [EnqueueJobRunShell::COMMAND];
     }
 }
