@@ -1,6 +1,8 @@
 <?php
 namespace Quartz\Bridge\Tests\Enqueue;
 
+use Enqueue\Client\CommandSubscriberInterface;
+use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Null\NullMessage;
 use Enqueue\Psr\PsrContext;
@@ -19,6 +21,31 @@ class EnqueueRemoteTransportProcessorTest extends TestCase
         $processor = new EnqueueRemoteTransportProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
 
         $this->assertInstanceOf(PsrProcessor::class, $processor);
+    }
+
+    public function testShouldImplementCommandSubscriberInterfaceAndReturnExpectectedSubscribedCommand()
+    {
+        $processor = new EnqueueRemoteTransportProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
+
+        $this->assertInstanceOf(CommandSubscriberInterface::class, $processor);
+
+        $expectedConfig = [
+            'processorName' => 'quartz_rpc',
+            'queueName' => 'quartz_rpc',
+            'queueNameHardcoded' => true,
+            'exclusive' => true,
+        ];
+
+        $this->assertSame($expectedConfig, EnqueueRemoteTransportProcessor::getSubscribedCommand());
+    }
+
+    public function testShouldImplementQueueSubscriberInterfaceAndReturnExpectectedSubscribedCommand()
+    {
+        $processor = new EnqueueRemoteTransportProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
+
+        $this->assertInstanceOf(QueueSubscriberInterface::class, $processor);
+
+        $this->assertSame(['quartz_rpc'], EnqueueRemoteTransportProcessor::getSubscribedQueues());
     }
 
     public function testShouldInvokeSchedulerMethodAndReturnResponse()

@@ -8,7 +8,7 @@ use Quartz\Scheduler\StdScheduler;
 
 class EnqueueJobRunShell implements JobRunShell
 {
-    const COMMAND = 'quartz.job_run_shell';
+    const COMMAND = 'quartz_job_run_shell';
 
     /**
      * @var ProducerV2Interface

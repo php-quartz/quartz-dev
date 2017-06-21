@@ -8,7 +8,7 @@ use Quartz\Bridge\Scheduler\RemoteTransport;
 
 class EnqueueRemoteTransport implements RemoteTransport
 {
-    const COMMAND = 'quartz.rpc';
+    const COMMAND = 'quartz_rpc';
 
     /**
      * @var ProducerV2Interface
