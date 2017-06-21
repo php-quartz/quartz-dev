@@ -13,10 +13,11 @@ abstract class BaseCalendar implements Model, Calendar
     use ValuesTrait;
     use ObjectsTrait;
 
-    public function __construct($instance, Calendar $baseCalendar = null)
+    public function __construct($instance, Calendar $baseCalendar = null, \DateTimeZone $timeZone = null)
     {
         $this->setInstance($instance);
         $this->setBaseCalendar($baseCalendar);
+        $this->setTimeZone($timeZone);
     }
 
     /**

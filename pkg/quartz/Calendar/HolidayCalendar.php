@@ -22,9 +22,9 @@ class HolidayCalendar extends BaseCalendar
     /**
      * {@inheritdoc}
      */
-    public function __construct(Calendar $baseCalendar = null)
+    public function __construct(Calendar $baseCalendar = null, \DateTimeZone $timeZone = null)
     {
-        parent::__construct(self::INSTANCE, $baseCalendar);
+        parent::__construct(self::INSTANCE, $baseCalendar, $timeZone);
     }
 
     /**
@@ -37,6 +37,11 @@ class HolidayCalendar extends BaseCalendar
         }
 
         $lookFor = \DateTime::createFromFormat('U', $timeStamp);
+
+        if ($tz = $this->getTimeZone()) {
+            $lookFor->setTimezone($tz);
+        }
+
         $lookFor->setTime(0, 0, 0);
 
         $dates = $this->getValue('excludedDates');
@@ -57,6 +62,11 @@ class HolidayCalendar extends BaseCalendar
 
         // Get timestamp for 00:00:00
         $day = \DateTime::createFromFormat('U', $timeStamp);
+
+        if ($tz = $this->getTimeZone()) {
+            $day->setTimezone($tz);
+        }
+
         $day->setTime(0, 0, 0);
 
         while (false == $this->isTimeIncluded((int) $day->format('U'))) {
@@ -110,7 +120,13 @@ class HolidayCalendar extends BaseCalendar
     {
         $dates = [];
         foreach ($this->getValue('excludedDates') as $date => $v) {
-            $dates[] = \DateTime::createFromFormat('U', $date, $this->getTimeZone());
+            $d = \DateTime::createFromFormat('U', $date);
+
+            if ($tz = $this->getTimeZone()) {
+                $d->setTimezone($tz);
+            }
+
+            $dates[] = $d;
         }
 
         return $dates;
