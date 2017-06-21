@@ -1,4 +1,5 @@
 quartz:
-    store:
-        uri: 'mongodb://%env(MONGODB_HOST)%:%env(MONGODB_PORT)%'
-        db_name: '%env(MONGODB_DB)%'
+    scheduler:
+        store:
+            uri: 'mongodb://%env(MONGODB_HOST)%:%env(MONGODB_PORT)%'
+            db_name: '%env(MONGODB_DB)%'

@@ -3,5 +3,3 @@
 parameters:
 
 services:
-    quartz.event_dispatcher:
-        alias: 'event_dispatcher'

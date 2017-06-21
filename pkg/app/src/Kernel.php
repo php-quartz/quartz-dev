@@ -51,9 +51,6 @@ final class Kernel extends BaseKernel
 
     protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader): void
     {
-        $container->registerExtension(new QuartzExtension());
-        $container->addCompilerPass(new QuartzJobCompilerPass());
-
         $confDir = dirname(__DIR__).'/etc';
         $loader->load($confDir.'/packages/*'.self::CONFIG_EXTS, 'glob');
         if (is_dir($confDir.'/packages/'.$this->environment)) {

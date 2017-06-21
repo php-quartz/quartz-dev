@@ -15,7 +15,8 @@
         "enqueue/enqueue-bundle": "^0.3|^0.4",
         "makasim/yadm": "@dev",
         "php-quartz/quartz": "@dev",
-        "php-quartz/bridge": "@dev"
+        "php-quartz/bridge": "@dev",
+        "php-quartz/bundle": "@dev"
     },
     "require-dev": {
         "symfony/dotenv": "^3.3",
