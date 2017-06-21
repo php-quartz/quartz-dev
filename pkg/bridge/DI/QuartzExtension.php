@@ -52,7 +52,7 @@ class QuartzExtension extends Extension
 
         $container->register($this->format('store'), YadmStore::class)
             ->setArguments([new Reference($this->format('store_resource'))])
-            ->addMethodCall('setMisfireThreshold', [$config['misfire_threshold']])
+            ->addMethodCall('setMisfireThreshold', [$config['misfireThreshold']])
         ;
 
         $container->register($this->format('enqueue_job_run_shell'), EnqueueJobRunShell::class)

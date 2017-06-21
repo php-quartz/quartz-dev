@@ -18,9 +18,18 @@ class QuartzConfiguration implements ConfigurationInterface
         $rootNode->children()
             ->arrayNode('store')->addDefaultsIfNotSet()->children()
                 ->scalarNode('uri')->defaultValue('mongodb://localhost:27017')->end()
-                ->scalarNode('db_name')->defaultValue('quartz')->end()
+                ->variableNode('uriOptions')->defaultValue([])->end()
+                ->variableNode('driverOptions')->defaultValue([])->end()
+                ->scalarNode('sessionId')->defaultValue('quartz')->end()
+                ->scalarNode('dbName')->defaultValue('quartz')->end()
+                ->scalarNode('managementLockCol')->defaultValue('managementLock')->end()
+                ->scalarNode('calendarCol')->defaultValue('calendar')->end()
+                ->scalarNode('triggerCol')->defaultValue('trigger')->end()
+                ->scalarNode('firedTriggerCol')->defaultValue('firedTrigger')->end()
+                ->scalarNode('jobCol')->defaultValue('job')->end()
+                ->scalarNode('pausedTriggerCol')->defaultValue('pausedTrigger')->end()
             ->end()->end()
-            ->integerNode('misfire_threshold')->min(10)->defaultValue(60)->end()
+            ->integerNode('misfireThreshold')->min(10)->defaultValue(60)->end()
         ;
 
         return $tb;
