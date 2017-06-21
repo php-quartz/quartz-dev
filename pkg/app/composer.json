@@ -10,6 +10,7 @@
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^3.3",
         "symfony/yaml": "^3.3",
+        "enqueue/psr-queue": "^0.5@dev",
         "enqueue/enqueue": "^0.5@dev",
         "enqueue/amqp-ext": "^0.5@dev",
         "enqueue/enqueue-bundle": "^0.5@dev",
@@ -20,7 +21,8 @@
     },
     "require-dev": {
         "symfony/dotenv": "^3.3",
-        "phpunit/phpunit": "~5.5"
+        "phpunit/phpunit": "~5.5",
+        "enqueue/null": "^0.5@dev"
     },
     "config": {
         "preferred-install": {
