@@ -6,14 +6,14 @@ use Quartz\Core\DateBuilder;
 
 /**
  * <p>
- * This implementation of the Calendar excludes a set of days of the week. You
- * may use it to exclude weekends for example. But you may define any day of
- * the week.  By default it excludes SATURDAY and SUNDAY.
+ * This implementation of the Calendar excludes a set of days of the month. You
+ * may use it to exclude every first day of each month for example. But you may define
+ * any day of a month.
  * </p>
  */
-class WeeklyCalendar extends BaseCalendar
+class MonthlyCalendar extends BaseCalendar
 {
-    const INSTANCE = 'weekly';
+    const INSTANCE = 'monthly';
 
     /**
      * {@inheritdoc}
@@ -21,16 +21,13 @@ class WeeklyCalendar extends BaseCalendar
     public function __construct(Calendar $baseCalendar = null, \DateTimeZone $timeZone = null)
     {
         parent::__construct(self::INSTANCE, $baseCalendar, $timeZone);
-
-        $this->setDaysExcluded([
-            DateBuilder::SATURDAY,
-            DateBuilder::SUNDAY,
-        ]);
     }
 
     /**
      * <p>
-     * Get the array with the week days
+     * Get the array which defines the exclude-value of each day of month.
+     * Only the first 31 elements of the array are relevant, with the 1 index
+     * element representing the first day of the month.
      * </p>
      */
     public function getDaysExcluded()
@@ -40,67 +37,35 @@ class WeeklyCalendar extends BaseCalendar
 
     /**
      * <p>
-     * Return true, if wday (see Calendar.get()) is defined to be exluded. E. g.
-     * saturday and sunday.
+     * Return true, if day is defined to be excluded.
      * </p>
      *
-     * @param int $wday
+     * @param int $day The day of the month (from 1 to 31) to check.
      *
      * @return bool
      */
-    public function isDayExcluded($wday)
+    public function isDayExcluded($day)
     {
-        DateBuilder::validateDayOfWeek($wday);
+        DateBuilder::validateDayOfMonth($day);
 
         $days = $this->getValue('excludeDays', []);
 
-        return in_array($wday, $days, true);
+        return in_array($day, $days, true);
     }
 
     /**
      * <p>
-     * Redefine the array of days excluded. The array must of size greater or
-     * equal 7. Calendar's constants like MONDAY should be used as
-     * index. A value of true is regarded as: exclude it.
+     * Redefine the array of days excluded. The array must non-null and of size
+     * greater or equal to 31. The 1 index element represents the first day of
+     * the month.
      * </p>
      *
-     * @param array $weekDays
+     * @param array $days
      */
-    public function setDaysExcluded(array $weekDays)
+    public function setDaysExcluded(array $days)
     {
-        foreach ($weekDays as $wday) {
-            DateBuilder::validateDayOfWeek($wday);
-        }
-
-        $this->setValue('excludeDays', $weekDays);
-    }
-
-    /**
-     * <p>
-     * Redefine a certain day of the week to be excluded (true) or included
-     * (false). Use Calendar's constants like MONDAY to determine the
-     * wday.
-     * </p>
-     *
-     * @param int  $wday
-     * @param bool $exclude
-     */
-    public function setDayExcluded($wday, $exclude)
-    {
-        DateBuilder::validateDayOfWeek($wday);
-
-        $days = $this->getValue('excludeDays', []);
-
-        if ($exclude) {
-            if (false === array_search($wday, $days, true)) {
-                $days[] = $wday;
-                sort($days, SORT_NUMERIC);
-            }
-        } else {
-            if (false !== $index = array_search($wday, $days, true)) {
-                unset($days[$index]);
-                $days = array_values($days);
-            }
+        foreach ($days as $day) {
+            DateBuilder::validateDayOfMonth($day);
         }
 
         $this->setValue('excludeDays', $days);
@@ -108,14 +73,32 @@ class WeeklyCalendar extends BaseCalendar
 
     /**
      * <p>
-     * Check if all week days are excluded. That is no day is included.
+     * Redefine a certain day of the month to be excluded (true) or included
+     * (false).
      * </p>
      *
-     * @return boolean
+     * @param int  $day The day of the month (from 1 to 31) to set.
+     * @param bool $exclude
      */
-    public function areAllDaysExcluded()
+    public function setDayExcluded($day, $exclude)
     {
-        return count($this->getValue('excludeDays', [])) >= 7;
+        DateBuilder::validateDayOfMonth($day);
+
+        $days = $this->getValue('excludeDays', []);
+
+        if ($exclude) {
+            if (false === array_search($day, $days, true)) {
+                $days[] = $day;
+                sort($days, SORT_NUMERIC);
+            }
+        } else {
+            if (false !== $index = array_search($day, $days, true)) {
+                unset($days[$index]);
+                $days = array_values($days);
+            }
+        }
+
+        $this->setValue('excludeDays', $days);
     }
 
     /**
@@ -128,16 +111,12 @@ class WeeklyCalendar extends BaseCalendar
      * Note that this Calendar is only has full-day precision.
      * </p>
      *
-     * @param int $timeStamp
+     * @param $timeStamp
      *
      * @return bool
      */
     public function isTimeIncluded($timeStamp)
     {
-        if ($this->getValue('excludeAll')) {
-            return false;
-        }
-
         // Test the base calendar first. Only if the base calendar not already
         // excludes the time/date, continue evaluating this calendar instance.
         if (false == parent::isTimeIncluded($timeStamp)) {
@@ -145,9 +124,19 @@ class WeeklyCalendar extends BaseCalendar
         }
 
         $date = $this->createDateTime($timeStamp);
-        $wday = (int) $date->format('N');
+        $day = (int) $date->format('j');
 
-        return false == $this->isDayExcluded($wday);
+        return false == $this->isDayExcluded($day);
+    }
+
+    /**
+     * <p>
+     * Check if all days are excluded. That is no day is included.
+     * </p>
+     */
+    public function areAllDaysExcluded()
+    {
+        return count($this->getValue('excludeDays', [])) >= 31;
     }
 
     /**
@@ -167,11 +156,10 @@ class WeeklyCalendar extends BaseCalendar
      */
     public function getNextIncludedTime($timeStamp)
     {
-        if ($this->getValue('excludeAll')) {
+        if ($this->areAllDaysExcluded()) {
             return 0;
         }
 
-        // Call base calendar implementation first
         $baseTime = parent::getNextIncludedTime($timeStamp);
         if ($baseTime > 0 && $baseTime > $timeStamp) {
             $timeStamp = $baseTime;
@@ -179,15 +167,15 @@ class WeeklyCalendar extends BaseCalendar
 
         // Get timestamp for 00:00:00
         $date = $this->getStartOfDayDateTime($timeStamp);
-        $wday = (int) $date->format('N');
+        $day = (int) $date->format('j');
 
-        if (false == $this->isDayExcluded($wday)) {
+        if (false == $this->isDayExcluded($day)) {
             return $timeStamp; // return the original value
         }
 
-        while ($this->isDayExcluded($wday)) {
+        while ($this->isDayExcluded($day)) {
             $date->add(new \DateInterval('P1D'));
-            $wday = (int) $date->format('N');
+            $day = (int) $date->format('j');
         }
 
         return (int) $date->format('U');

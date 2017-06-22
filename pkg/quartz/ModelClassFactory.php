@@ -2,6 +2,7 @@
 namespace Quartz;
 
 use Quartz\Calendar\HolidayCalendar;
+use Quartz\Calendar\MonthlyCalendar;
 use Quartz\Calendar\WeeklyCalendar;
 use Quartz\Core\Key;
 use Quartz\Core\SchedulerException;
@@ -44,6 +45,8 @@ class ModelClassFactory
                 return HolidayCalendar::class;
             case WeeklyCalendar::INSTANCE:
                 return WeeklyCalendar::class;
+            case MonthlyCalendar::INSTANCE:
+                return MonthlyCalendar::class;
             // key
             case Key::INSTANCE:
                 return Key::class;

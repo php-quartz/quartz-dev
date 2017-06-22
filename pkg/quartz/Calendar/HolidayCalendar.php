@@ -36,13 +36,7 @@ class HolidayCalendar extends BaseCalendar
             return false;
         }
 
-        $lookFor = \DateTime::createFromFormat('U', $timeStamp);
-
-        if ($tz = $this->getTimeZone()) {
-            $lookFor->setTimezone($tz);
-        }
-
-        $lookFor->setTime(0, 0, 0);
+        $lookFor = $this->getStartOfDayDateTime($timeStamp);
 
         $dates = $this->getValue('excludedDates');
 
@@ -61,13 +55,7 @@ class HolidayCalendar extends BaseCalendar
         }
 
         // Get timestamp for 00:00:00
-        $day = \DateTime::createFromFormat('U', $timeStamp);
-
-        if ($tz = $this->getTimeZone()) {
-            $day->setTimezone($tz);
-        }
-
-        $day->setTime(0, 0, 0);
+        $day = $this->getStartOfDayDateTime($timeStamp);
 
         while (false == $this->isTimeIncluded((int) $day->format('U'))) {
             $day->add(new \DateInterval('P1D'));
@@ -86,11 +74,10 @@ class HolidayCalendar extends BaseCalendar
      */
     public function addExcludedDate(\DateTime $excludedDate)
     {
-        $clone = clone $excludedDate;
-        $clone->setTime(0, 0, 0);
+        $date = $this->getStartOfDayDateTime($excludedDate->format('U'));
 
         $dates = $this->getValue('excludedDates');
-        $dates[$clone->format('U')] = true;
+        $dates[$date->format('U')] = true;
 
         $this->setValue('excludedDates', $dates);
     }
@@ -100,11 +87,10 @@ class HolidayCalendar extends BaseCalendar
      */
     public function removeExcludedDate(\DateTime $dateToRemove)
     {
-        $clone = clone $dateToRemove;
-        $clone->setTime(0, 0 ,0);
+        $date = $this->getStartOfDayDateTime($dateToRemove->format('U'));
 
         $dates = $this->getValue('excludedDates');
-        unset($dates[$clone->format('U')]);
+        unset($dates[$date->format('U')]);
 
         $this->setValue('excludedDates', $dates);
     }

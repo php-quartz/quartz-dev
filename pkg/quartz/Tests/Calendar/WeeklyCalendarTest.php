@@ -4,6 +4,7 @@ namespace Quartz\Tests\Calendar;
 use PHPUnit\Framework\TestCase;
 use Quartz\Calendar\WeeklyCalendar;
 use Quartz\Core\Calendar;
+use Quartz\Core\DateBuilder;
 
 class WeeklyCalendarTest extends TestCase
 {
@@ -14,29 +15,9 @@ class WeeklyCalendarTest extends TestCase
 
     public function testShouldReturnDefaultExcludedWeekDays()
     {
-        $expectedWDays = [
-            1 => false,
-            2 => false,
-            3 => false,
-            4 => false,
-            5 => false,
-            6 => true,
-            7 => true,
-        ];
-
         $cal = new WeeklyCalendar();
 
-        $this->assertSame($expectedWDays, $cal->getDaysExcluded());
-    }
-
-    public function testOnSetDaysExcludedShouldThrowExceptionIfNotAllDaysAreSet()
-    {
-        $cal = new WeeklyCalendar();
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Not all week days were set: "1,2"');
-
-        $cal->setDaysExcluded([1 => true, 2 => false]);
+        $this->assertSame([DateBuilder::SATURDAY, DateBuilder::SUNDAY], $cal->getDaysExcluded());
     }
 
     public function testOnSetDaysExcludedShouldThrowExceptionIfArrayKeyIsNotDayOfWeek()
@@ -46,42 +27,16 @@ class WeeklyCalendarTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid day of week: "8"');
 
-        $cal->setDaysExcluded([
-            8 => true, 2 => false, 3 => true, 4 => false, 5 => true, 6 => false, 7 => true,
-        ]);
-    }
-
-    public function testOnSetDaysExcludedShouldThrowExceptionIfArrayValueIsNotBool()
-    {
-        $cal = new WeeklyCalendar();
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Array must contain only bool values. True - excludes day of week.');
-
-        $cal->setDaysExcluded([
-            1 => true, 2 => false, 3 => 'string', 4 => false, 5 => true, 6 => false, 7 => true,
-        ]);
+        $cal->setDaysExcluded([8]);
     }
 
     public function testShouldSetExcludedDaysOfWeek()
     {
         $cal = new WeeklyCalendar();
 
-        $cal->setDaysExcluded([
-            1 => true, 2 => false, 3 => true, 4 => false, 5 => true, 6 => false, 7 => true,
-        ]);
+        $cal->setDaysExcluded([DateBuilder::MONDAY, DateBuilder::FRIDAY]);
 
-        $expectedWDays = [
-            1 => true,
-            2 => false,
-            3 => true,
-            4 => false,
-            5 => true,
-            6 => false,
-            7 => true,
-        ];
-
-        $this->assertSame($expectedWDays, $cal->getDaysExcluded());
+        $this->assertSame([DateBuilder::MONDAY, DateBuilder::FRIDAY], $cal->getDaysExcluded());
     }
 
     public function testOnSetDayExcludedShouldThrowExceptionIfArgumentIsNotDayOfWeek()
@@ -98,30 +53,36 @@ class WeeklyCalendarTest extends TestCase
     {
         $cal = new WeeklyCalendar();
 
-        $cal->setDaysExcluded([
-            1 => false,
-            2 => false,
-            3 => false,
-            4 => false,
-            5 => false,
-            6 => false,
-            7 => false,
-        ]);
+        $cal->setDayExcluded(DateBuilder::THURSDAY, true);
+        $cal->setDayExcluded(DateBuilder::FRIDAY, true);
 
-        $cal->setDayExcluded(3, true);
-        $cal->setDayExcluded(5, true);
+        $this->assertSame([
+            DateBuilder::THURSDAY,
+            DateBuilder::FRIDAY,
+            DateBuilder::SATURDAY,
+            DateBuilder::SUNDAY
+        ], $cal->getDaysExcluded());
+    }
 
-        $expectedWDays = [
-            1 => false,
-            2 => false,
-            3 => true,
-            4 => false,
-            5 => true,
-            6 => false,
-            7 => false,
-        ];
+    public function testShouldUnsetExcludedDayOfWeek()
+    {
+        $cal = new WeeklyCalendar();
 
-        $this->assertSame($expectedWDays, $cal->getDaysExcluded());
+        $cal->setDayExcluded(DateBuilder::FRIDAY, true);
+
+        $this->assertSame([
+            DateBuilder::FRIDAY,
+            DateBuilder::SATURDAY,
+            DateBuilder::SUNDAY
+        ], $cal->getDaysExcluded());
+
+        // unset
+        $cal->setDayExcluded(DateBuilder::FRIDAY, false);
+        $cal->setDayExcluded(DateBuilder::SUNDAY, false);
+
+        $this->assertSame([
+            DateBuilder::SATURDAY,
+        ], $cal->getDaysExcluded());
     }
 
     public function testShouldReturnTrueWhenAllDaysAreExcluded()
@@ -130,15 +91,7 @@ class WeeklyCalendarTest extends TestCase
 
         $this->assertFalse($cal->areAllDaysExcluded());
 
-        $cal->setDaysExcluded([
-            1 => true,
-            2 => true,
-            3 => true,
-            4 => true,
-            5 => true,
-            6 => true,
-            7 => true,
-        ]);
+        $cal->setDaysExcluded(range(1, 7));
 
         $this->assertTrue($cal->areAllDaysExcluded());
     }
@@ -147,15 +100,7 @@ class WeeklyCalendarTest extends TestCase
     {
         $cal = new WeeklyCalendar();
 
-        $cal->setDaysExcluded([
-            1 => false,
-            2 => false,
-            3 => false,
-            4 => true,
-            5 => false,
-            6 => false,
-            7 => false,
-        ]);
+        $cal->setDaysExcluded([4]);
 
         $included = new \DateTime('2012-12-12 12:12:12');
         $excluded = new \DateTime('2012-12-13 12:12:12');
@@ -173,15 +118,7 @@ class WeeklyCalendarTest extends TestCase
     {
         $cal = new WeeklyCalendar();
 
-        $cal->setDaysExcluded([
-            1 => false,
-            2 => true,
-            3 => true,
-            4 => true,
-            5 => true,
-            6 => false,
-            7 => false,
-        ]);
+        $cal->setDaysExcluded([2, 3, 4, 5]);
 
         $date = new \DateTime('2012-12-11 12:12:12');
 

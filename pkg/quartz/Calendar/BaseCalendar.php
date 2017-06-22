@@ -122,4 +122,46 @@ abstract class BaseCalendar implements Model, Calendar
 
         $this->setValue('timezone', $value);
     }
+
+    /**
+     * @param int $timeStamp
+     *
+     * @return \DateTime
+     */
+    protected function createDateTime($timeStamp)
+    {
+        $date = \DateTime::createFromFormat('U', $timeStamp);
+
+        if ($tz = $this->getTimeZone()) {
+            $date->setTimezone($tz);
+        }
+
+        return $date;
+    }
+
+    /**
+     * @param int $timeStamp
+     *
+     * @return \DateTime
+     */
+    protected function getStartOfDayDateTime($timeStamp)
+    {
+        $date = $this->createDateTime($timeStamp);
+        $date->setTime(0, 0, 0);
+
+        return $date;
+    }
+
+    /**
+     * @param int $timeStamp
+     *
+     * @return \DateTime
+     */
+    protected function getEndOfDayDateTime($timeStamp)
+    {
+        $date = $this->createDateTime($timeStamp);
+        $date->setTime(23, 59, 59);
+
+        return $date;
+    }
 }
