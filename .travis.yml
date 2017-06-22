@@ -4,7 +4,7 @@ git:
 language: php
 
 env:
-  DOCKER_VERSION: '17.05.0~ce-0~ubuntu-trusty'
+  DOCKER_VERSION: '17.03.1~ce-0~ubuntu-trusty'
   DOCKER_COMPOSE_VERSION: '1.13.0'
 
 matrix:
@@ -20,7 +20,7 @@ cache:
 install:
     - sudo apt-get update
     # list docker-engine versions
-    - apt-cache madison docker-engine
+    - apt-cache madison docker-ce
     # upgrade docker-engine to specific version
     - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}
 
