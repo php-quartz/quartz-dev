@@ -45,23 +45,22 @@ class CronTrigger extends AbstractTrigger
     }
 
     /**
-     * @param string $cronExpression
+     * @param string|CronExpression $cronExpression
      */
     public function setCronExpression($cronExpression)
     {
+        if ($cronExpression instanceof CronExpression) {
+            $cronExpression = $cronExpression->getExpression();
+        } elseif (false == is_string($cronExpression)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Expected string but got: "%s"', is_object($cronExpression) ? get_class($cronExpression) : gettype($cronExpression)));
+        }
+
         $this->setValue('cronExpression', $cronExpression);
 
         // reinit cron expression, throws exception on invalid cron expression
         $this->cronExpr = null;
         $this->getCronExp();
-    }
-
-    /**
-     * @param CronExpression $cronExpression
-     */
-    public function setCronExpressionInstance(CronExpression $cronExpression)
-    {
-        $this->setCronExpression($cronExpression->getExpression());
     }
 
     /**

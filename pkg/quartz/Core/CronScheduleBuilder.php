@@ -65,7 +65,7 @@ class CronScheduleBuilder extends ScheduleBuilder
     {
         $trigger = new CronTrigger();
 
-        $trigger->setCronExpressionInstance($this->cronExpression);
+        $trigger->setCronExpression($this->cronExpression);
         $trigger->setMisfireInstruction($this->misfireInstruction);
 //        $trigger->setTimeZone(cronExpression.getTimeZone());
 
