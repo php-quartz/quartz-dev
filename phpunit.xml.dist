@@ -19,6 +19,9 @@
         <testsuite name="bridge">
             <directory>pkg/bridge/Tests</directory>
         </testsuite>
+        <testsuite name="bundle">
+            <directory>pkg/bundle/Tests</directory>
+        </testsuite>
         <testsuite name="app">
             <directory>pkg/app/tests</directory>
         </testsuite>
