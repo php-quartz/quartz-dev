@@ -1,6 +1,8 @@
 <?php
 namespace Quartz;
 
+use Quartz\Calendar\CronCalendar;
+use Quartz\Calendar\DailyCalendar;
 use Quartz\Calendar\HolidayCalendar;
 use Quartz\Calendar\MonthlyCalendar;
 use Quartz\Calendar\WeeklyCalendar;
@@ -47,6 +49,10 @@ class ModelClassFactory
                 return WeeklyCalendar::class;
             case MonthlyCalendar::INSTANCE:
                 return MonthlyCalendar::class;
+            case CronCalendar::INSTANCE:
+                return CronCalendar::class;
+            case DailyCalendar::INSTANCE:
+                return DailyCalendar::class;
             // key
             case Key::INSTANCE:
                 return Key::class;
