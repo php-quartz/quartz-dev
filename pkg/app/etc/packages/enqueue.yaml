@@ -1,7 +1,7 @@
 enqueue:
     transport:
-        default: 'rabbitmq_amqp'
-        rabbitmq_amqp:
+        default: 'rabbitmq_amqp_lib'
+        rabbitmq_amqp_lib:
             host: '%env(RABBITMQ_HOST)%'
             port: '%env(RABBITMQ_PORT)%'
             user: '%env(RABBITMQ_USER)%'
