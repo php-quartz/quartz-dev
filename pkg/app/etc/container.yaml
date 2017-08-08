@@ -3,3 +3,9 @@
 parameters:
 
 services:
+    app.amqp_quartz_delay_strategy_job:
+        class: 'Quartz\Bridge\Enqueue\AmqpQuartzDelayStrategyJob'
+        arguments:
+            - '@enqueue.transport.context'
+        tags:
+            - { name: 'quartz.job' }
