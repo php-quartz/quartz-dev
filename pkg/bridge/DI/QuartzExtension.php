@@ -56,7 +56,7 @@ class QuartzExtension extends Extension
         ;
 
         $container->register($this->format('enqueue_job_run_shell'), EnqueueJobRunShell::class)
-            ->setArguments([new Reference('enqueue.client.producer_v2')])
+            ->setArguments([new Reference('enqueue.producer')])
         ;
 
         $container->register($this->format('job_run_shell_factory'), StdJobRunShellFactory::class)
@@ -69,7 +69,7 @@ class QuartzExtension extends Extension
 
         // TODO: add config option where can enable/disable this job
         $container->register($this->format('job.enqueue_response'), EnqueueResponseJob::class)
-            ->setArguments([new Reference('enqueue.client.producer_v2')])
+            ->setArguments([new Reference('enqueue.producer')])
             ->addTag($this->format('job'), ['alias' => 'enqueue_response'])
             ->addTag($this->format('job'), ['alias' => EnqueueResponseJob::class])
         ;

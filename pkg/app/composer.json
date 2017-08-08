@@ -17,7 +17,7 @@
     "require-dev": {
         "symfony/dotenv": "^3.3",
         "phpunit/phpunit": "~5.5",
-        "enqueue/null": "^0.5@dev"
+        "enqueue/null": "^0.7@dev"
     },
     "config": {
         "preferred-install": {
