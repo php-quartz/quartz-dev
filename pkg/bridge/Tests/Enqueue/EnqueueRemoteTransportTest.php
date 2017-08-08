@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Bridge\Tests\Enqueue;
 
-use Enqueue\Client\ProducerV2Interface;
+use Enqueue\Client\ProducerInterface;
 use Enqueue\Null\NullMessage;
 use Enqueue\Rpc\Promise;
 use Enqueue\Util\JSON;
@@ -13,7 +13,7 @@ class EnqueueRemoteTransportTest extends TestCase
 {
     public function testShouldImplementRemoteTransportInterface()
     {
-        $producer = $this->createMock(ProducerV2Interface::class);
+        $producer = $this->createMock(ProducerInterface::class);
 
         $this->assertInstanceOf(RemoteTransport::class, new EnqueueRemoteTransport($producer));
     }
@@ -30,7 +30,7 @@ class EnqueueRemoteTransportTest extends TestCase
             ->willReturn($message)
         ;
 
-        $producer = $this->createMock(ProducerV2Interface::class);
+        $producer = $this->createMock(ProducerInterface::class);
         $producer
             ->expects($this->once())
             ->method('sendCommand')

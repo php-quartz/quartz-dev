@@ -4,10 +4,10 @@ namespace Quartz\Bridge\Enqueue;
 use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
-use Enqueue\Psr\PsrContext;
-use Enqueue\Psr\PsrMessage;
-use Enqueue\Psr\PsrProcessor;
 use Enqueue\Util\JSON;
+use Interop\Queue\PsrContext;
+use Interop\Queue\PsrMessage;
+use Interop\Queue\PsrProcessor;
 use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\Scheduler;
 

@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Bridge\Scheduler;
 
-use Enqueue\Client\ProducerV2Interface;
+use Enqueue\Client\ProducerInterface;
 use Quartz\Scheduler\JobRunShell;
 use Quartz\Core\Trigger;
 use Quartz\Scheduler\StdScheduler;
@@ -11,14 +11,14 @@ class EnqueueJobRunShell implements JobRunShell
     const COMMAND = 'quartz_job_run_shell';
 
     /**
-     * @var ProducerV2Interface
+     * @var ProducerInterface
      */
     private $producer;
 
     /**
-     * @param ProducerV2Interface $producer
+     * @param ProducerInterface $producer
      */
-    public function __construct(ProducerV2Interface $producer)
+    public function __construct(ProducerInterface $producer)
     {
         $this->producer = $producer;
     }

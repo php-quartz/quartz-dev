@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Bridge\Tests\Enqueue;
 
-use Enqueue\Client\ProducerV2Interface;
+use Enqueue\Client\ProducerInterface;
 use PHPUnit\Framework\TestCase;
 use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Core\Job;
@@ -80,10 +80,10 @@ class EnqueueResponseJobTest extends TestCase
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|ProducerV2Interface
+     * @return \PHPUnit_Framework_MockObject_MockObject|ProducerInterface
      */
     private function createProducerMock()
     {
-        return $this->createMock(ProducerV2Interface::class);
+        return $this->createMock(ProducerInterface::class);
     }
 }

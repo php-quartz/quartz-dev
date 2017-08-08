@@ -10,14 +10,9 @@
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^3.3",
         "symfony/yaml": "^3.3",
-        "enqueue/psr-queue": "^0.5@dev",
-        "enqueue/enqueue": "^0.5@dev",
-        "enqueue/amqp-ext": "^0.5@dev",
-        "enqueue/enqueue-bundle": "^0.5@dev",
         "makasim/yadm": "@dev",
-        "php-quartz/quartz": "@dev",
-        "php-quartz/bridge": "@dev",
-        "php-quartz/bundle": "@dev"
+        "enqueue/amqp-lib": "^0.7@dev",
+        "php-quartz/bundle": "^0.1@dev"
     },
     "require-dev": {
         "symfony/dotenv": "^3.3",
@@ -60,6 +55,9 @@
         "symfony": {
             "id": "01BJQZD7YBT9JB0NGH2G58754G",
             "allow-contrib": false
+        },
+        "branch-alias": {
+            "dev-master": "0.1.x-dev"
         }
     }
 }
