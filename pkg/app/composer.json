@@ -11,13 +11,13 @@
         "symfony/framework-bundle": "^3.3",
         "symfony/yaml": "^3.3",
         "makasim/yadm": "@dev",
-        "enqueue/amqp-lib": "^0.7@dev",
+        "enqueue/amqp-lib": "^0.7@dev|^0.8@dev",
         "php-quartz/bundle": "^0.1@dev"
     },
     "require-dev": {
         "symfony/dotenv": "^3.3",
         "phpunit/phpunit": "~5.5",
-        "enqueue/null": "^0.7@dev"
+        "enqueue/null": "^0.7@dev|^0.8@dev"
     },
     "config": {
         "preferred-install": {
