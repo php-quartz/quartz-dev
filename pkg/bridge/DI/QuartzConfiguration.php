@@ -21,7 +21,7 @@ class QuartzConfiguration implements ConfigurationInterface
                 ->variableNode('uriOptions')->defaultValue([])->end()
                 ->variableNode('driverOptions')->defaultValue([])->end()
                 ->scalarNode('sessionId')->defaultValue('quartz')->end()
-                ->scalarNode('dbName')->defaultValue('quartz')->end()
+                ->scalarNode('dbName')->defaultValue(null)->end()
                 ->scalarNode('managementLockCol')->defaultValue('managementLock')->end()
                 ->scalarNode('calendarCol')->defaultValue('calendar')->end()
                 ->scalarNode('triggerCol')->defaultValue('trigger')->end()
