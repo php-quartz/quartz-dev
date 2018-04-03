@@ -5,9 +5,16 @@
     "description": "PHP Job Time Scheduler Project",
     "keywords": ["job", "time", "task", "time scheduler", "quartz", "chrono"],
     "license": "MIT",
-
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "platform": {
+            "php": "7.2",
+            "ext-mongodb": "1.4"
+        },
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
     },
     "require": {
         "php": ">=5.6",
