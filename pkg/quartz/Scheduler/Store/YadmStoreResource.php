@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\Scheduler\Store;
 
+use Makasim\Yadm\CollectionFactory;
 use Makasim\Yadm\Hydrator;
 use Makasim\Yadm\PessimisticLock;
 use Makasim\Yadm\Storage;
@@ -89,7 +90,9 @@ class YadmStoreResource
      */
     public function getCollection($name)
     {
-        return $this->getClient()->selectCollection($this->options['dbName'], $name);
+        $factory = new CollectionFactory($this->getClient(), $this->options['uri']);
+
+        return $factory->create($name, $this->options['dbName']);
     }
 
     /**
