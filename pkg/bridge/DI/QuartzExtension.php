@@ -88,6 +88,7 @@ class QuartzExtension extends Extension
         ;
 
         $container->register($this->format('job_run_shell_processor'), JobRunShellProcessor::class)
+            ->setPublic(true)
             ->setArguments([
                 new Reference($this->format('store')),
                 new Reference($this->format('std_job_run_shell'))
@@ -100,6 +101,7 @@ class QuartzExtension extends Extension
         ;
 
         $container->register($this->format('remote_transport_processor'), EnqueueRemoteTransportProcessor::class)
+            ->setPublic(true)
             ->setArguments([
                 new Reference($this->format('scheduler')),
                 new Reference($this->format('rpc_protocol'))
