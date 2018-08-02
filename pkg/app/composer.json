@@ -10,7 +10,7 @@
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^3|^4",
         "symfony/yaml": "^3|^4",
-        "makasim/yadm": "^0.3|^0.4",
+        "makasim/yadm": "^0.3|^0.4|^0.5",
         "enqueue/amqp-lib": "^0.8",
         "php-quartz/bundle": "^0.1"
     },
