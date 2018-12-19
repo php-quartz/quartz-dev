@@ -6,8 +6,8 @@ use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Null\NullMessage;
 use Enqueue\Util\JSON;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Processor;
 use PHPUnit\Framework\TestCase;
 use Quartz\Bridge\Scheduler\JobRunShellProcessor;
 use Quartz\Scheduler\StdJobRunShell;
@@ -16,11 +16,11 @@ use Quartz\Triggers\SimpleTrigger;
 
 class JobRunShellProcessorTest extends TestCase
 {
-    public function testShouldImplementPsrProcessorInterface()
+    public function testShouldImplementProcessorInterface()
     {
         $processor = new JobRunShellProcessor($this->createJobStore(), $this->createJobRunShell());
 
-        $this->assertInstanceOf(PsrProcessor::class, $processor);
+        $this->assertInstanceOf(Processor::class, $processor);
     }
 
     public function testShouldImplementCommandSubscriberInterfaceAndReturnExpectectedSubscribedCommand()
@@ -30,9 +30,9 @@ class JobRunShellProcessorTest extends TestCase
         $this->assertInstanceOf(CommandSubscriberInterface::class, $processor);
 
         $expectedConfig = [
-            'processorName' => 'quartz_job_run_shell',
-            'queueName' => 'quartz_job_run_shell',
-            'queueNameHardcoded' => true,
+            'command' => 'quartz_job_run_shell',
+            'queue' => 'quartz_job_run_shell',
+            'prefix_queue' => false,
             'exclusive' => true,
         ];
 
@@ -64,7 +64,7 @@ class JobRunShellProcessorTest extends TestCase
 
         $processor = new JobRunShellProcessor($store, $shell);
 
-        $result = $processor->process(new NullMessage(), $this->createMock(PsrContext::class));
+        $result = $processor->process(new NullMessage(), $this->createMock(Context::class));
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame('fire instance id is empty', $result->getReason());
@@ -91,7 +91,7 @@ class JobRunShellProcessorTest extends TestCase
             'fireInstanceId' => '1234',
         ]));
 
-        $result = $processor->process($message, $this->createMock(PsrContext::class));
+        $result = $processor->process($message, $this->createMock(Context::class));
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame('There is not trigger with fire instance id: "1234"', $result->getReason());
@@ -122,9 +122,10 @@ class JobRunShellProcessorTest extends TestCase
             'fireInstanceId' => '1234',
         ]));
 
-        $result = $processor->process($message, $this->createMock(PsrContext::class));
+        $result = $processor->process($message, $this->createMock(Context::class));
 
-        $this->assertSame(Result::ACK, $result);
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertSame(Result::ACK, $result->getStatus());
     }
 
     /**

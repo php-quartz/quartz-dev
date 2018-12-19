@@ -8,7 +8,7 @@ class RemoteSchedulerTest extends WebTestCase
 {
     public function testCouldBeGetFromContainerAsService()
     {
-        $scheduler = $this->container->get('quartz.remote.scheduler');
+        $scheduler = static::$container->get('test_quartz.remote.scheduler');
 
         $this->assertInstanceOf(RemoteScheduler::class, $scheduler);
     }

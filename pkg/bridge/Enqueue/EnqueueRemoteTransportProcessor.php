@@ -5,13 +5,13 @@ use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Util\JSON;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrMessage;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Message;
+use Interop\Queue\Processor;
 use Quartz\Bridge\Scheduler\RpcProtocol;
 use Quartz\Core\Scheduler;
 
-class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriberInterface, QueueSubscriberInterface
+class EnqueueRemoteTransportProcessor implements Processor, CommandSubscriberInterface, QueueSubscriberInterface
 {
     /**
      * @var Scheduler
@@ -33,10 +33,7 @@ class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriber
         $this->rpcProtocol = $rpcProtocol;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function process(PsrMessage $message, PsrContext $context)
+    public function process(Message $message, Context $context): Result
     {
         try {
             $request = $this->rpcProtocol->decodeRequest(JSON::decode($message->getBody()));
@@ -50,23 +47,17 @@ class EnqueueRemoteTransportProcessor implements PsrProcessor, CommandSubscriber
         return Result::reply($context->createMessage(JSON::encode($result)));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedCommand()
+    public static function getSubscribedCommand(): array
     {
         return [
-            'processorName' => EnqueueRemoteTransport::COMMAND,
-            'queueName' => EnqueueRemoteTransport::COMMAND,
-            'queueNameHardcoded' => true,
+            'command' => EnqueueRemoteTransport::COMMAND,
+            'queue' => EnqueueRemoteTransport::COMMAND,
+            'prefix_queue' => false,
             'exclusive' => true,
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedQueues()
+    public static function getSubscribedQueues(): array
     {
         return [EnqueueRemoteTransport::COMMAND];
     }

@@ -5,13 +5,13 @@ use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Util\JSON;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrMessage;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Message;
+use Interop\Queue\Processor;
 use Quartz\Scheduler\JobStore;
 use Quartz\Scheduler\StdJobRunShell;
 
-class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface, QueueSubscriberInterface
+class JobRunShellProcessor implements Processor, CommandSubscriberInterface, QueueSubscriberInterface
 {
     /**
      * @var JobStore
@@ -33,10 +33,7 @@ class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface, 
         $this->runShell = $runShell;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function process(PsrMessage $message, PsrContext $context)
+    public function process(Message $message, Context $context): Result
     {
         $data = JSON::decode($message->getBody());
 
@@ -50,26 +47,20 @@ class JobRunShellProcessor implements PsrProcessor, CommandSubscriberInterface, 
 
         $this->runShell->execute($trigger);
 
-        return Result::ACK;
+        return Result::ack();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedCommand()
+    public static function getSubscribedCommand(): array
     {
         return [
-            'processorName' => EnqueueJobRunShell::COMMAND,
-            'queueName' => EnqueueJobRunShell::COMMAND,
-            'queueNameHardcoded' => true,
+            'command' => EnqueueJobRunShell::COMMAND,
+            'queue' => EnqueueJobRunShell::COMMAND,
+            'prefix_queue' => false,
             'exclusive' => true,
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedQueues()
+    public static function getSubscribedQueues(): array
     {
         return [EnqueueJobRunShell::COMMAND];
     }

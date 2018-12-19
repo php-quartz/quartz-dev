@@ -26,7 +26,7 @@ class QuartzConfigurationTest extends TestCase
                 'uriOptions' => [],
                 'driverOptions' => [],
                 'sessionId' => 'quartz',
-                'dbName' => 'quartz',
+                'dbName' => null,
                 'managementLockCol' => 'managementLock',
                 'calendarCol' => 'calendar',
                 'triggerCol' => 'trigger',
@@ -42,7 +42,7 @@ class QuartzConfigurationTest extends TestCase
 
     public function testCouldSetConfigurationOptions()
     {
-        $configuration = new QuartzConfiguration([]);
+        $configuration = new QuartzConfiguration();
 
         $processor = new Processor();
         $config = $processor->processConfiguration($configuration, [[
@@ -58,7 +58,7 @@ class QuartzConfigurationTest extends TestCase
                 'uriOptions' => [],
                 'driverOptions' => [],
                 'sessionId' => 'quartz',
-                'dbName' => 'quartz',
+                'dbName' => null,
                 'managementLockCol' => 'managementLock',
                 'calendarCol' => 'calendar',
                 'triggerCol' => 'trigger',

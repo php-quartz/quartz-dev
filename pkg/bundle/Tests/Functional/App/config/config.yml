@@ -16,12 +16,28 @@ framework:
     default_locale:  '%locale%'
 
 enqueue:
-    transport:
-        default: 'null'
-        'null': ~
-    client:
-        traceable_producer: true
+    default:
+       transport: 'null:'
+       client:
+           traceable_producer: true
 
 quartz:
     remote_scheduler: ~
     scheduler: ~
+
+services:
+  test_quartz.cli.management:
+    public: true
+    alias: 'quartz.cli.management'
+
+  test_quartz.remote.scheduler:
+    public: true
+    alias: 'quartz.remote.scheduler'
+
+  test_quartz.cli.scheduler:
+    public: true
+    alias: 'quartz.cli.scheduler'
+
+  test_quartz.scheduler:
+    public: true
+    alias: 'quartz.scheduler'

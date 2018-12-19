@@ -3,8 +3,6 @@
 namespace Quartz\App;
 
 use function Makasim\Values\register_cast_hooks;
-use Quartz\Bridge\DI\QuartzExtension;
-use Quartz\Bridge\DI\QuartzJobCompilerPass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\Bridge\DI;
 
+use Enqueue\Client\ProducerInterface;
 use Quartz\Bridge\Enqueue\EnqueueRemoteTransport;
 use Quartz\Bridge\Scheduler\RemoteScheduler;
 use Quartz\Bridge\Scheduler\RpcProtocol;
@@ -37,7 +38,7 @@ class RemoteSchedulerExtension extends Extension
     public function load(array $configs, ContainerBuilder $container)
     {
         $container->register($this->format('remote.transport'), EnqueueRemoteTransport::class)
-            ->setArguments([new Reference('enqueue.client.producer_v2')])
+            ->setArguments([new Reference(ProducerInterface::class)])
         ;
 
         $container->register($this->format('remote.rpc_protocol'), RpcProtocol::class)

@@ -50,7 +50,7 @@ class QuartzExtensionTest extends \PHPUnit_Framework_TestCase
             'remote_scheduler' => false,
         ]], $container);
 
-        $this->assertNotContains('quartz.remote.scheduler', $container->getServiceIds());
+        $this->assertNotContains('test_quartz.remote.scheduler', $container->getServiceIds());
     }
 
     public function testShouldLoadRemoteSchedulerServicesIfEnabled()

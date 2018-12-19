@@ -10,14 +10,14 @@
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^3|^4",
         "symfony/yaml": "^3|^4",
-        "makasim/yadm": "^0.3|^0.4|^0.5",
-        "enqueue/amqp-lib": "^0.8",
+        "makasim/yadm": "^0.5",
+        "enqueue/amqp-lib": "^0.9",
         "php-quartz/bundle": "^0.1"
     },
     "require-dev": {
         "symfony/dotenv": "^3|^4",
         "phpunit/phpunit": "^5.5",
-        "enqueue/null": "^0.8"
+        "enqueue/null": "^0.9"
     },
     "config": {
         "preferred-install": {

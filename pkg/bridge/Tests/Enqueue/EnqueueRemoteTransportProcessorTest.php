@@ -5,8 +5,8 @@ use Enqueue\Client\CommandSubscriberInterface;
 use Enqueue\Consumption\QueueSubscriberInterface;
 use Enqueue\Consumption\Result;
 use Enqueue\Null\NullMessage;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Processor;
 use PHPUnit\Framework\TestCase;
 use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
 use Quartz\Bridge\Scheduler\RpcProtocol;
@@ -16,11 +16,11 @@ use Quartz\Triggers\SimpleTrigger;
 
 class EnqueueRemoteTransportProcessorTest extends TestCase
 {
-    public function testShouldImpleentPsrProcessorInterface()
+    public function testShouldImpleentProcessorInterface()
     {
         $processor = new EnqueueRemoteTransportProcessor($this->createSchedulerMock(), $this->createRpcProtocolMock());
 
-        $this->assertInstanceOf(PsrProcessor::class, $processor);
+        $this->assertInstanceOf(Processor::class, $processor);
     }
 
     public function testShouldImplementCommandSubscriberInterfaceAndReturnExpectectedSubscribedCommand()
@@ -30,9 +30,9 @@ class EnqueueRemoteTransportProcessorTest extends TestCase
         $this->assertInstanceOf(CommandSubscriberInterface::class, $processor);
 
         $expectedConfig = [
-            'processorName' => 'quartz_rpc',
-            'queueName' => 'quartz_rpc',
-            'queueNameHardcoded' => true,
+            'command' => 'quartz_rpc',
+            'queue' => 'quartz_rpc',
+            'prefix_queue' => false,
             'exclusive' => true,
         ];
 
@@ -78,7 +78,7 @@ class EnqueueRemoteTransportProcessorTest extends TestCase
             ->willReturn('scheduler-result')
         ;
 
-        $context = $this->createPsrContextMock();
+        $context = $this->createContextMock();
         $context
             ->expects($this->once())
             ->method('createMessage')
@@ -125,7 +125,7 @@ class EnqueueRemoteTransportProcessorTest extends TestCase
             ->willThrowException($ex)
         ;
 
-        $context = $this->createPsrContextMock();
+        $context = $this->createContextMock();
         $context
             ->expects($this->once())
             ->method('createMessage')
@@ -141,11 +141,11 @@ class EnqueueRemoteTransportProcessorTest extends TestCase
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|PsrContext
+     * @return \PHPUnit_Framework_MockObject_MockObject|Context
      */
-    private function createPsrContextMock()
+    private function createContextMock()
     {
-        return $this->createMock(PsrContext::class);
+        return $this->createMock(Context::class);
     }
 
     /**

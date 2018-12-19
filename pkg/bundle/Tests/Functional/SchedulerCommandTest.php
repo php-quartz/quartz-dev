@@ -8,7 +8,7 @@ class SchedulerCommandTest extends WebTestCase
 {
     public function testCouldBeGetFromContainerAsService()
     {
-        $scheduler = $this->container->get('quartz.cli.scheduler');
+        $scheduler = static::$container->get('test_quartz.cli.scheduler');
 
         $this->assertInstanceOf(SchedulerCommand::class, $scheduler);
     }

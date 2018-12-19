@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\Bridge\DI;
 
+use Enqueue\Client\ProducerInterface;
 use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
 use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Bridge\Scheduler\EnqueueJobRunShell;
@@ -56,7 +57,7 @@ class QuartzExtension extends Extension
         ;
 
         $container->register($this->format('enqueue_job_run_shell'), EnqueueJobRunShell::class)
-            ->setArguments([new Reference('enqueue.producer')])
+            ->setArguments([new Reference(ProducerInterface::class)])
         ;
 
         $container->register($this->format('job_run_shell_factory'), StdJobRunShellFactory::class)
@@ -69,7 +70,7 @@ class QuartzExtension extends Extension
 
         // TODO: add config option where can enable/disable this job
         $container->register($this->format('job.enqueue_response'), EnqueueResponseJob::class)
-            ->setArguments([new Reference('enqueue.producer')])
+            ->setArguments([new Reference(ProducerInterface::class)])
             ->addTag($this->format('job'), ['alias' => 'enqueue_response'])
             ->addTag($this->format('job'), ['alias' => EnqueueResponseJob::class])
         ;
@@ -93,7 +94,7 @@ class QuartzExtension extends Extension
                 new Reference($this->format('store')),
                 new Reference($this->format('std_job_run_shell'))
             ])
-            ->addTag('enqueue.client.processor')
+            ->addTag('enqueue.command_subscriber')
         ;
 
         $container->register($this->format('rpc_protocol'), RpcProtocol::class)
@@ -106,7 +107,7 @@ class QuartzExtension extends Extension
                 new Reference($this->format('scheduler')),
                 new Reference($this->format('rpc_protocol'))
             ])
-            ->addTag('enqueue.client.processor')
+            ->addTag('enqueue.command_subscriber')
         ;
     }
 
