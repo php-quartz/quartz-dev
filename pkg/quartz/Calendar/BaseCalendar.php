@@ -2,8 +2,8 @@
 namespace Quartz\Calendar;
 
 use Doctrine\Instantiator\Exception\InvalidArgumentException;
-use Makasim\Values\ObjectsTrait;
-use Makasim\Values\ValuesTrait;
+use Formapro\Values\ObjectsTrait;
+use Formapro\Values\ValuesTrait;
 use Quartz\Core\Calendar;
 use Quartz\Core\Model;
 use Quartz\ModelClassFactory;

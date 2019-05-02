@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Core;
 
-use Makasim\Values\ValuesTrait;
+use Formapro\Values\ValuesTrait;
 use Ramsey\Uuid\Uuid;
 
 class Key implements Model

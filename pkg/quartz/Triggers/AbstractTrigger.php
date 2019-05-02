@@ -1,8 +1,8 @@
 <?php
 namespace Quartz\Triggers;
 
-use Makasim\Values\CastTrait;
-use Makasim\Values\ValuesTrait;
+use Formapro\Values\CastTrait;
+use Formapro\Values\ValuesTrait;
 use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\DateBuilder;

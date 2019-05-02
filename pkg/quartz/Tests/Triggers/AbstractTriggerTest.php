@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Tests\Triggers;
 
-use function Makasim\Values\set_value;
+use function Formapro\Values\set_value;
 use PHPUnit\Framework\TestCase;
 use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;

@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\JobDetail;
 
-use Makasim\Values\ValuesTrait;
+use Formapro\Values\ValuesTrait;
 use Quartz\Core\JobDetail as BaseJobDetail;
 use Quartz\Core\Key;
 use Quartz\Core\Model;

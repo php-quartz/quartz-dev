@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Tests\Functional\Scheduler\Store;
 
-use function Makasim\Values\register_cast_hooks;
+use function Formapro\Values\register_cast_hooks;
 use Quartz\Calendar\HolidayCalendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobPersistenceException;

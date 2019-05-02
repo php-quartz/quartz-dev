@@ -1,10 +1,10 @@
 <?php
 namespace Quartz\Scheduler\Store;
 
-use Makasim\Yadm\CollectionFactory;
-use Makasim\Yadm\Hydrator;
-use Makasim\Yadm\PessimisticLock;
-use Makasim\Yadm\Storage;
+use Formapro\Yadm\CollectionFactory;
+use Formapro\Yadm\Hydrator;
+use Formapro\Yadm\PessimisticLock;
+use Formapro\Yadm\Storage;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Driver\Exception\RuntimeException;

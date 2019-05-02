@@ -1,8 +1,8 @@
 <?php
 namespace Quartz\Bridge\Scheduler;
 
-use function Makasim\Values\get_values;
-use function Makasim\Values\set_values;
+use function Formapro\Values\get_values;
+use function Formapro\Values\set_values;
 use Quartz\Core\Model;
 use Quartz\ModelClassFactory;
 

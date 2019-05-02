@@ -1,11 +1,11 @@
 <?php
 namespace Quartz\Scheduler\Store;
 
-use function Makasim\Values\get_values;
-use function Makasim\Values\set_value;
-use function Makasim\Values\set_values;
-use function Makasim\Yadm\get_object_id;
-use function Makasim\Yadm\set_object_id;
+use function Formapro\Values\get_values;
+use function Formapro\Values\set_value;
+use function Formapro\Values\set_values;
+use function Formapro\Yadm\get_object_id;
+use function Formapro\Yadm\set_object_id;
 use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobDetail;
