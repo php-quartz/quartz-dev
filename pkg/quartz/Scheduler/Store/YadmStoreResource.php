@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\Scheduler\Store;
 
+use Formapro\Yadm\ClientProvider;
 use Formapro\Yadm\CollectionFactory;
 use Formapro\Yadm\Hydrator;
 use Formapro\Yadm\PessimisticLock;
@@ -19,9 +20,9 @@ class YadmStoreResource
     private $options;
 
     /**
-     * @var Client
+     * @var ClientProvider
      */
-    private $client;
+    private $clientProvider;
 
     /**
      * @var PessimisticLock
@@ -76,11 +77,11 @@ class YadmStoreResource
      */
     public function getClient()
     {
-        if (false == $this->client) {
-            $this->client = new Client($this->options['uri'], $this->options['uriOptions'], $this->options['driverOptions']);
+        if (false == $this->clientProvider) {
+            $this->clientProvider = new ClientProvider($this->options['uri'], $this->options['uriOptions'], $this->options['driverOptions']);
         }
 
-        return $this->client;
+        return $this->clientProvider->getClient();
     }
 
     /**
@@ -90,7 +91,7 @@ class YadmStoreResource
      */
     public function getCollection($name)
     {
-        $factory = new CollectionFactory($this->getClient(), $this->options['uri']);
+        $factory = new CollectionFactory($this->clientProvider, $this->options['uri']);
 
         return $factory->create($name, $this->options['dbName']);
     }
