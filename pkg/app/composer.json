@@ -12,7 +12,7 @@
         "symfony/yaml": "^3|^4",
         "makasim/yadm": "^0.5",
         "enqueue/amqp-lib": "^0.9",
-        "php-quartz/bundle": "^0.1"
+        "php-quartz/bundle": "^0.2"
     },
     "require-dev": {
         "symfony/dotenv": "^3|^4",
@@ -57,7 +57,7 @@
             "allow-contrib": false
         },
         "branch-alias": {
-            "dev-master": "0.1.x-dev"
+            "dev-master": "0.2.x-dev"
         }
     }
 }
