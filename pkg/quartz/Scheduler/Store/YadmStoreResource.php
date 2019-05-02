@@ -72,26 +72,23 @@ class YadmStoreResource
         ], $options);
     }
 
-    /**
-     * @return Client
-     */
-    public function getClient()
+    public function getClient(): Client
+    {
+        return $this->getClientProvider()->getClient();
+    }
+
+    public function getClientProvider(): ClientProvider
     {
         if (false == $this->clientProvider) {
             $this->clientProvider = new ClientProvider($this->options['uri'], $this->options['uriOptions'], $this->options['driverOptions']);
         }
 
-        return $this->clientProvider->getClient();
+        return $this->clientProvider;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return \MongoDB\Collection
-     */
-    public function getCollection($name)
+    public function getCollection(string $name): Collection
     {
-        $factory = new CollectionFactory($this->clientProvider, $this->options['uri']);
+        $factory = new CollectionFactory($this->getClientProvider(), $this->options['uri']);
 
         return $factory->create($name, $this->options['dbName']);
     }
