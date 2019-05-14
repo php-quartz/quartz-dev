@@ -143,21 +143,4 @@ class SimpleStoreResource implements StoreResource
 
         return $this->pausedTriggerStorage;
     }
-
-    public function dropIndexes(): void
-    {
-        try {
-            $this->getTriggerStorage()->getCollection()->dropIndexes();
-            $this->getJobStorage()->getCollection()->dropIndexes();
-            $this->getCalendarStorage()->getCollection()->dropIndexes();
-            $this->getPausedTriggerStorage()->getCollection()->dropIndexes();
-            $this->getFiredTriggerStorage()->getCollection()->dropIndexes();
-        } catch (RuntimeException $e) {
-        }
-    }
-
-    public function createIndexes(): void
-    {
-
-    }
 }
