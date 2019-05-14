@@ -1,5 +1,5 @@
 <?php
-namespace Quartz\Tests\Functional\Scheduler\Store;
+namespace Quartz\Bridge\Tests\Yadm;
 
 use function Formapro\Values\register_cast_hooks;
 use Quartz\Calendar\HolidayCalendar;
@@ -11,8 +11,8 @@ use Quartz\Core\Trigger;
 use Quartz\JobDetail\JobDetail;
 use Quartz\Core\ObjectAlreadyExistsException;
 use Quartz\Scheduler\StdScheduler;
-use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;
+use Quartz\Bridge\Yadm\YadmStore;
+use Quartz\Bridge\Yadm\SimpleStoreResource;
 use Quartz\Triggers\SimpleTrigger;
 
 class YadmStoreTest extends \PHPUnit_Framework_TestCase
@@ -23,7 +23,7 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
     private $store;
 
     /**
-     * @var YadmStoreResource
+     * @var SimpleStoreResource
      */
     private $res;
 
@@ -41,7 +41,7 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
             'dbName' => getenv('MONGODB_DB')
         ];
 
-        $this->res = new YadmStoreResource($config);
+        $this->res = new SimpleStoreResource($config);
         $this->store = new YadmStore($this->res);
         $this->store->initialize($this->createMock(StdScheduler::class));
         $this->store->clearAllSchedulingData();

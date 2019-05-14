@@ -10,8 +10,8 @@ use Interop\Queue\Context;
 use Interop\Queue\Processor;
 use PHPUnit\Framework\TestCase;
 use Quartz\Bridge\Scheduler\JobRunShellProcessor;
+use Quartz\Bridge\Yadm\YadmStore;
 use Quartz\Scheduler\StdJobRunShell;
-use Quartz\Scheduler\Store\YadmStore;
 use Quartz\Triggers\SimpleTrigger;
 
 class JobRunShellProcessorTest extends TestCase

@@ -1,11 +1,14 @@
 <?php
-namespace Quartz\Scheduler\Store;
+namespace Quartz\Bridge\Yadm;
 
 use function Formapro\Values\get_values;
 use function Formapro\Values\set_value;
 use function Formapro\Values\set_values;
 use function Formapro\Yadm\get_object_id;
 use function Formapro\Yadm\set_object_id;
+use Formapro\Yadm\Storage;
+use Formapro\Yadm\StorageMetaInterface;
+use MongoDB\Driver\Exception\RuntimeException;
 use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobDetail;
@@ -23,7 +26,7 @@ class YadmStore implements JobStore
     const ALL_GROUPS_PAUSED = '_$_ALL_GROUPS_PAUSED_$_';
 
     /**
-     * @var YadmStoreResource
+     * @var StoreResource
      */
     private $res;
 
@@ -37,10 +40,7 @@ class YadmStore implements JobStore
      */
     private $misfireThreshold = 60; // one minute
 
-    /**
-     * @param YadmStoreResource $res
-     */
-    public function __construct(YadmStoreResource $res)
+    public function __construct(StoreResource $res)
     {
         $this->res = $res;
     }
@@ -419,7 +419,7 @@ class YadmStore implements JobStore
         $this->res->getTriggerStorage()->getCollection()->deleteMany([]);
         $this->res->getJobStorage()->getCollection()->deleteMany([]);
         $this->res->getCalendarStorage()->getCollection()->deleteMany([]);
-        $this->res->getPausedTriggerCol()->deleteMany([]);
+        $this->res->getPausedTriggerStorage()->getCollection()->deleteMany([]);
         $this->res->getFiredTriggerStorage()->getCollection()->deleteMany([]);
     }
 
@@ -679,7 +679,7 @@ class YadmStore implements JobStore
      */
     public function getPausedTriggerGroups()
     {
-        return $this->res->getPausedTriggerCol()->distinct('groupName');
+        return $this->res->getPausedTriggerStorage()->getCollection()->distinct('groupName');
     }
 
     /**
@@ -1138,7 +1138,7 @@ class YadmStore implements JobStore
      */
     public function insertPausedTriggerGroup($groupName)
     {
-        $result = $this->res->getPausedTriggerCol()->updateOne(
+        $result = $this->res->getPausedTriggerStorage()->getCollection()->updateOne(
             ['groupName' => $groupName],
             ['$set' => ['groupName' => $groupName]],
             ['upsert' => true]
@@ -1154,7 +1154,7 @@ class YadmStore implements JobStore
      */
     public function deletePausedTriggerGroup($groupName)
     {
-        $result = $this->res->getPausedTriggerCol()->deleteOne(['groupName' => $groupName]);
+        $result = $this->res->getPausedTriggerStorage()->getCollection()->deleteOne(['groupName' => $groupName]);
 
         return $result->isAcknowledged() && $result->getDeletedCount();
     }
@@ -1166,7 +1166,7 @@ class YadmStore implements JobStore
      */
     public function isTriggerGroupPaused($groupName)
     {
-        return (bool) $this->res->getPausedTriggerCol()->count(['groupName' => $groupName]);
+        return (bool) $this->res->getPausedTriggerStorage()->getCollection()->count(['groupName' => $groupName]);
     }
 
     /**
@@ -1206,7 +1206,33 @@ class YadmStore implements JobStore
      */
     public function createIndexes()
     {
-        $this->res->dropIndexes();
-        $this->res->createIndexes();
+        try {
+            $this->res->getTriggerStorage()->getCollection()->dropIndexes();
+            $this->res->getJobStorage()->getCollection()->dropIndexes();
+            $this->res->getCalendarStorage()->getCollection()->dropIndexes();
+            $this->res->getPausedTriggerStorage()->getCollection()->dropIndexes();
+            $this->res->getFiredTriggerStorage()->getCollection()->dropIndexes();
+        } catch (RuntimeException $e) {
+        }
+
+        $lock = $this->res->getManagementLock();
+        foreach ($lock->getIndexes() as $index) {
+            $lock->getCollection()->createIndexes($index->getKey(), $index->getOptions());
+        }
+
+        $storages = [
+            $this->res->getCalendarStorage(),
+            $this->res->getTriggerStorage(),
+            $this->res->getJobStorage(),
+            $this->res->getPausedTriggerStorage(),
+            $this->res->getFiredTriggerStorage(),
+        ];
+
+        foreach ($storages as $storage) {
+            /** @var Storage|StorageMetaInterface $storage */
+            foreach ($storage->getIndexes() as $index) {
+                $storage->getCollection()->createIndexes($index->getKey(), $index->getOptions());
+            }
+        }
     }
 }

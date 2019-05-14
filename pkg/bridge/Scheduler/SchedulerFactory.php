@@ -5,6 +5,8 @@ use Enqueue\SimpleClient\SimpleClient;
 use Quartz\Bridge\Enqueue\EnqueueRemoteTransport;
 use Quartz\Bridge\Enqueue\EnqueueRemoteTransportProcessor;
 use Quartz\Bridge\Enqueue\EnqueueResponseJob;
+use Quartz\Bridge\Yadm\SimpleStoreResource;
+use Quartz\Bridge\Yadm\YadmStore;
 use Quartz\Core\Scheduler;
 use Quartz\Core\SchedulerFactory as BaseSchedulerFactory;
 use Quartz\Core\SimpleJobFactory;
@@ -12,8 +14,6 @@ use Quartz\Scheduler\JobRunShellFactory;
 use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Scheduler\StdScheduler;
-use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class SchedulerFactory implements BaseSchedulerFactory
@@ -134,7 +134,7 @@ class SchedulerFactory implements BaseSchedulerFactory
     {
         if (null == $this->store) {
             $config = isset($this->config['store']) ? $this->config['store'] : [];
-            $this->store = new YadmStore(new YadmStoreResource($config));
+            $this->store = new YadmStore(new SimpleStoreResource($config));
         }
 
         return $this->store;

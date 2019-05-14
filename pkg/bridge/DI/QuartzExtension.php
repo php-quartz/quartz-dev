@@ -7,12 +7,13 @@ use Quartz\Bridge\Enqueue\EnqueueResponseJob;
 use Quartz\Bridge\Scheduler\EnqueueJobRunShell;
 use Quartz\Bridge\Scheduler\JobRunShellProcessor;
 use Quartz\Bridge\Scheduler\RpcProtocol;
+use Quartz\Bridge\Yadm\BundleStoreResource;
+use Quartz\Bridge\Yadm\SimpleStoreResource;
+use Quartz\Bridge\Yadm\YadmStore;
 use Quartz\Core\SimpleJobFactory;
 use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Scheduler\StdScheduler;
-use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
@@ -47,12 +48,30 @@ class QuartzExtension extends Extension
     {
         $config = $this->processConfiguration(new QuartzConfiguration(), $configs);
 
-        $container->register($this->format('store_resource'), YadmStoreResource::class)
-            ->setArguments([$config['store']])
-        ;
+        if (false == empty($config['yadm_simple_store']) && false == empty($config['yadm_bundle_store'])) {
+            throw new \LogicException('Either yadm_simple_store or yadm_bundle_store must be set. Both are set');  
+        }
+        if (empty($config['yadm_simple_store']) && empty($config['yadm_bundle_store'])) {
+            throw new \LogicException('Either yadm_simple_store or yadm_bundle_store must be set. None is set');
+        }
+
+        if (false == empty($config['yadm_simple_store'])) {
+            $container->register($this->format('store_resource'), SimpleStoreResource::class)
+                ->addArgument($config['yadm_simple_store'])
+            ;
+        }
+
+        if (false == empty($config['yadm_bundle_store'])) {
+            $container->register($this->format('store_resource'), BundleStoreResource::class)
+                ->addArgument(new Reference('yadm.client_provider'))
+                ->addArgument(new Reference('yadm.collection_factory'))
+                ->addArgument(new Reference('yadm'))
+                ->addArgument($config['yadm_bundle_store'])
+            ;
+        }
 
         $container->register($this->format('store'), YadmStore::class)
-            ->setArguments([new Reference($this->format('store_resource'))])
+            ->addArgument(new Reference($this->format('store_resource')))
             ->addMethodCall('setMisfireThreshold', [$config['misfireThreshold']])
         ;
 

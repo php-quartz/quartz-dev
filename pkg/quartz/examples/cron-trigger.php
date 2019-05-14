@@ -10,8 +10,8 @@ use Quartz\Scheduler\StdJobRunShell;
 use Quartz\Scheduler\StdJobRunShellFactory;
 use Quartz\Core\TriggerBuilder;
 use Quartz\Scheduler\StdScheduler;
-use Quartz\Scheduler\Store\YadmStore;
-use Quartz\Scheduler\Store\YadmStoreResource;
+use Quartz\Bridge\Yadm\YadmStore;
+use Quartz\Bridge\Yadm\SimpleStoreResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 require_once '../vendor/autoload.php';
@@ -39,7 +39,7 @@ $trigger = TriggerBuilder::newTrigger()
     ->withSchedule(CronScheduleBuilder::cronSchedule('*/5 * * * * *'))
     ->build();
 
-$store = new YadmStore(new YadmStoreResource($config));
+$store = new YadmStore(new SimpleStoreResource($config));
 $store->clearAllSchedulingData();
 
 $scheduler = new StdScheduler($store, new StdJobRunShellFactory(new StdJobRunShell()), new SimpleJobFactory(), new EventDispatcher());

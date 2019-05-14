@@ -2,9 +2,9 @@
 namespace Quartz\Bundle\Tests\Command;
 
 use PHPUnit\Framework\TestCase;
+use Quartz\Bridge\Yadm\YadmStore;
 use Quartz\Bundle\Command\ManagementCommand;
 use Quartz\Scheduler\StdScheduler;
-use Quartz\Scheduler\Store\YadmStore;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\QuestionHelper;

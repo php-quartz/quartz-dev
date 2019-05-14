@@ -17,13 +17,9 @@ use Quartz\Triggers\SimpleTrigger;
 class ModelClassFactory
 {
     /**
-     * @param array $values
-     *
-     * @return string
-     *
      * @throws SchedulerException
      */
-    public static function getClass($values)
+    public static function getClass(array $values): string
     {
         if (false == isset($values['instance'])) {
             throw new SchedulerException('Values has no "instance" field');
