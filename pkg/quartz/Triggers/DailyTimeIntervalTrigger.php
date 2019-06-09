@@ -1,6 +1,7 @@
 <?php
 namespace Quartz\Triggers;
 
+use Formapro\Values\Cast\CastDateTime;
 use Quartz\Core\Calendar;
 use Quartz\Core\DateBuilder;
 use Quartz\Core\IntervalUnit;
@@ -187,7 +188,7 @@ class DailyTimeIntervalTrigger extends AbstractTrigger
      */
     public function getStartTimeOfDay()
     {
-        return $this->getValue('startTimeOfDay', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('startTimeOfDay'));
     }
 
     /**
@@ -204,7 +205,7 @@ class DailyTimeIntervalTrigger extends AbstractTrigger
             throw new \InvalidArgumentException('End time of day cannot be before start time of day');
         }
 
-        $this->setValue('startTimeOfDay', $startTimeOfDay);
+        $this->setValue('startTimeOfDay', CastDateTime::to($startTimeOfDay));
     }
 
     /**
@@ -212,7 +213,7 @@ class DailyTimeIntervalTrigger extends AbstractTrigger
      */
     public function getEndTimeOfDay()
     {
-        return $this->getValue('endTimeOfDay', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('endTimeOfDay'));
     }
 
     /**
@@ -227,7 +228,7 @@ class DailyTimeIntervalTrigger extends AbstractTrigger
             throw new \InvalidArgumentException('End time of day cannot be before start time of day');
         }
 
-        $this->setValue('endTimeOfDay', $endTimeOfDay);
+        $this->setValue('endTimeOfDay', CastDateTime::to($endTimeOfDay));
     }
     /**
      * <p>
