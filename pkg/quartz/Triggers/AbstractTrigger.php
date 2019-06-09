@@ -1,7 +1,7 @@
 <?php
 namespace Quartz\Triggers;
 
-use Formapro\Values\CastTrait;
+use Formapro\Values\Cast\CastDateTime;
 use Formapro\Values\ValuesTrait;
 use Quartz\Core\Calendar;
 use Quartz\Core\CompletedExecutionInstruction;
@@ -14,7 +14,6 @@ use Quartz\Core\Trigger;
 
 abstract class AbstractTrigger implements Model, Trigger
 {
-    use CastTrait;
     use ValuesTrait;
 
     /**
@@ -162,7 +161,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getStartTime()
     {
-        return $this->getValue('startTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('startTime'));
     }
 
     /**
@@ -176,7 +175,7 @@ abstract class AbstractTrigger implements Model, Trigger
             throw new \InvalidArgumentException('End time cannot be before start time');
         }
 
-        $this->setValue('startTime', $startTime);
+        $this->setValue('startTime', CastDateTime::to($startTime));
     }
 
     /**
@@ -184,7 +183,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getEndTime()
     {
-        return $this->getValue('endTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('endTime'));
     }
 
     /**
@@ -198,7 +197,7 @@ abstract class AbstractTrigger implements Model, Trigger
             throw new \InvalidArgumentException('End time cannot be before start time');
         }
 
-        $this->setValue('endTime', $endTime);
+        $this->setValue('endTime', CastDateTime::to($endTime));
     }
 
     /**
@@ -206,7 +205,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getNextFireTime()
     {
-        return $this->getValue('nextFireTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('nextFireTime'));
     }
 
     /**
@@ -214,7 +213,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function setNextFireTime(\DateTime $nextFireTime = null)
     {
-        $this->setValue('nextFireTime', $nextFireTime);
+        $this->setValue('nextFireTime', CastDateTime::to($nextFireTime));
     }
 
     /**
@@ -222,7 +221,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getPreviousFireTime()
     {
-        return $this->getValue('previousFireTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('previousFireTime'));
     }
 
     /**
@@ -230,7 +229,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function setPreviousFireTime(\DateTime $previousFireTime)
     {
-        $this->setValue('previousFireTime', $previousFireTime);
+        $this->setValue('previousFireTime', CastDateTime::to($previousFireTime));
     }
 
     /**
@@ -308,7 +307,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function setFireTime(\DateTime $time)
     {
-        $this->setValue('fireTime', $time);
+        $this->setValue('fireTime', CastDateTime::to($time));
     }
 
     /**
@@ -316,7 +315,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getFireTime()
     {
-        return $this->getValue('fireTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('fireTime'));
     }
 
     /**
@@ -324,7 +323,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function setScheduledFireTime(\DateTime $time)
     {
-        $this->setValue('scheduledFireTime', $time);
+        $this->setValue('scheduledFireTime', CastDateTime::to($time));
     }
 
     /**
@@ -332,7 +331,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getScheduledFireTime()
     {
-        return $this->getValue('scheduledFireTime', null, \DateTime::class);
+        return CastDateTime::from($this->getValue('scheduledFireTime');
     }
 
     /**

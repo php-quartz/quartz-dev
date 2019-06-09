@@ -13,6 +13,7 @@
     },
     "require-dev": {
         "formapro/yadm": "^0.5.5",
+        "makasim/values": "^0.5.2",
         "phpunit/phpunit": "^5.5"
     },
     "suggest": {
