@@ -35,7 +35,9 @@ class QuartzExtensionTest extends \PHPUnit_Framework_TestCase
 
         $ext = new QuartzExtension();
         $ext->load([[
-            'scheduler' => null,
+            'scheduler' => [
+                'yadm_simple_store' => [],
+            ],
         ]], $container);
 
         $this->assertContains('quartz.scheduler', $container->getServiceIds());

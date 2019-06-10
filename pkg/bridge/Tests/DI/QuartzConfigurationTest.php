@@ -15,24 +15,26 @@ class QuartzConfigurationTest extends TestCase
 
     public function testShouldReturnDefaultConfig()
     {
-        $configuration = new QuartzConfiguration([]);
+        $configuration = new QuartzConfiguration();
 
         $processor = new Processor();
-        $config = $processor->processConfiguration($configuration, [[]]);
+        $config = $processor->processConfiguration($configuration, [[
+            'yadm_simple_store' => [],
+        ]]);
 
         $expectedConfig = [
-            'store' => [
+            'yadm_simple_store' => [
                 'uri' => 'mongodb://localhost:27017',
                 'uriOptions' => [],
                 'driverOptions' => [],
                 'sessionId' => 'quartz',
                 'dbName' => null,
-                'managementLockCol' => 'managementLock',
-                'calendarCol' => 'calendar',
-                'triggerCol' => 'trigger',
-                'firedTriggerCol' => 'firedTrigger',
-                'jobCol' => 'job',
-                'pausedTriggerCol' => 'pausedTrigger',
+                'managementLockCol' => 'quartz_management_lock',
+                'calendarCol' => 'quartz_calendar',
+                'triggerCol' => 'quartz_trigger',
+                'firedTriggerCol' => 'quartz_fired_trigger',
+                'jobCol' => 'quartz_job',
+                'pausedTriggerCol' => 'quartz_paused_trigger',
             ],
             'misfireThreshold' => 60,
         ];
@@ -46,25 +48,25 @@ class QuartzConfigurationTest extends TestCase
 
         $processor = new Processor();
         $config = $processor->processConfiguration($configuration, [[
-            'store' => [
+            'yadm_simple_store' => [
                 'uri' => 'the-uri',
             ],
             'misfireThreshold' => 120,
         ]]);
 
         $expectedConfig = [
-            'store' => [
+            'yadm_simple_store' => [
                 'uri' => 'the-uri',
                 'uriOptions' => [],
                 'driverOptions' => [],
                 'sessionId' => 'quartz',
                 'dbName' => null,
-                'managementLockCol' => 'managementLock',
-                'calendarCol' => 'calendar',
-                'triggerCol' => 'trigger',
-                'firedTriggerCol' => 'firedTrigger',
-                'jobCol' => 'job',
-                'pausedTriggerCol' => 'pausedTrigger',
+                'managementLockCol' => 'quartz_management_lock',
+                'calendarCol' => 'quartz_calendar',
+                'triggerCol' => 'quartz_trigger',
+                'firedTriggerCol' => 'quartz_fired_trigger',
+                'jobCol' => 'quartz_job',
+                'pausedTriggerCol' => 'quartz_paused_trigger',
             ],
             'misfireThreshold' => 120,
         ];

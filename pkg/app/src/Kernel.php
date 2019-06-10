@@ -2,7 +2,6 @@
 
 namespace Quartz\App;
 
-use function Formapro\Values\register_cast_hooks;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -17,15 +16,6 @@ final class Kernel extends BaseKernel
     use MicroKernelTrait;
 
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
-
-    public function boot()
-    {
-        if (false == $this->booted) {
-            register_cast_hooks();
-        }
-
-        parent::boot();
-    }
 
     public function getCacheDir(): string
     {

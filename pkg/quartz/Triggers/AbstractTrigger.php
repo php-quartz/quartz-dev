@@ -331,7 +331,7 @@ abstract class AbstractTrigger implements Model, Trigger
      */
     public function getScheduledFireTime()
     {
-        return CastDateTime::from($this->getValue('scheduledFireTime');
+        return CastDateTime::from($this->getValue('scheduledFireTime'));
     }
 
     /**

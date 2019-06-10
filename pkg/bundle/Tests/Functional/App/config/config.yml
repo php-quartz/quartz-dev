@@ -23,7 +23,9 @@ enqueue:
 
 quartz:
     remote_scheduler: ~
-    scheduler: ~
+    scheduler:
+        yadm_simple_store:
+            uri: 'mongodb://mongo:27017/quartz'
 
 services:
   test_quartz.cli.management:

@@ -1,6 +1,5 @@
 <?php
 
-use function Formapro\Values\register_cast_hooks;
 use Quartz\Core\Job;
 use Quartz\Core\JobExecutionContext;
 use Quartz\Core\SimpleJobFactory;
@@ -12,8 +11,6 @@ use Quartz\Bridge\Yadm\SimpleStoreResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 require_once '../vendor/autoload.php';
-
-register_cast_hooks();
 
 $config = [
     'uri' => sprintf('mongodb://%s:%s', getenv('MONGODB_HOST'), getenv('MONGODB_PORT')),

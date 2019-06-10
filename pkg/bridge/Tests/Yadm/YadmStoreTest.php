@@ -1,7 +1,6 @@
 <?php
 namespace Quartz\Bridge\Tests\Yadm;
 
-use function Formapro\Values\register_cast_hooks;
 use Quartz\Calendar\HolidayCalendar;
 use Quartz\Core\CompletedExecutionInstruction;
 use Quartz\Core\JobPersistenceException;
@@ -27,17 +26,12 @@ class YadmStoreTest extends \PHPUnit_Framework_TestCase
      */
     private $res;
 
-    public static function setUpBeforeClass()
-    {
-        register_cast_hooks();
-    }
-
     protected function setUp()
     {
         parent::setUp();
 
         $config = [
-            'uri' => sprintf('mongodb://%s:%s', getenv('MONGODB_HOST'), getenv('MONGODB_PORT')),
+            'uri' => sprintf('mongodb://%s:%s/quartz_test', getenv('MONGODB_HOST'), getenv('MONGODB_PORT')),
             'dbName' => getenv('MONGODB_DB')
         ];
 

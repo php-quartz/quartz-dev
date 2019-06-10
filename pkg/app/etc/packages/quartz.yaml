@@ -1,5 +1,5 @@
 quartz:
     scheduler:
-        store:
+        yadm_simple_store:
             uri: 'mongodb://%env(MONGODB_HOST)%:%env(MONGODB_PORT)%'
             dbName: '%env(MONGODB_DB)%'

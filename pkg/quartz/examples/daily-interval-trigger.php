@@ -1,6 +1,5 @@
 <?php
 
-use function Formapro\Values\register_cast_hooks;
 use Quartz\Core\DailyTimeIntervalScheduleBuilder;
 use Quartz\Core\Job;
 use Quartz\Core\JobBuilder;
@@ -16,8 +15,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $dir = realpath(dirname($_SERVER['PHP_SELF']));
 $loader = require $dir.'/../vendor/autoload.php';
-
-register_cast_hooks();
 
 $config = [
     'uri' => sprintf('mongodb://%s:%s', getenv('MONGODB_HOST'), getenv('MONGODB_PORT')),
