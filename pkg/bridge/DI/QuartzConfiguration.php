@@ -9,8 +9,8 @@ class QuartzConfiguration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder()
     {
-        $tb = new TreeBuilder();
-        $rootNode = $tb->root('quartz');
+        $tb = new TreeBuilder('quartz');
+        $rootNode = $tb->getRootNode();
 
         $rootNode->children()
             ->arrayNode('yadm_simple_store')->children()
