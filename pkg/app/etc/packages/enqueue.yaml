@@ -1,6 +1,7 @@
 enqueue:
     default:
       transport:
+        dsn: 'amqp:'
         connection_factory_class: 'Enqueue\AmqpBunny\AmqpConnectionFactory'
         host: '%env(RABBITMQ_HOST)%'
         port: '%env(RABBITMQ_PORT)%'
