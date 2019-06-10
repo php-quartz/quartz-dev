@@ -17,7 +17,7 @@
         "sort-packages": true
     },
     "require": {
-        "php": ">=5.6",
+        "php": "^7.2",
         "php-quartz/quartz": "*@dev",
         "php-quartz/bridge": "*@dev",
         "php-quartz/bundle": "*@dev",
